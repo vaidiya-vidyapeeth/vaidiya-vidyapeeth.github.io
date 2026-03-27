@@ -753,92 +753,113 @@
 { phone: "918077784810", name: "Vaidya Anita Saini" }
 
         ];
+    const canvas = document.getElementById('certCanvas');
+    const ctx = canvas.getContext('2d');
+    const template = new Image();
+    
+    // Crucial for GitHub Pages / External Hosting
+    template.crossOrigin = "anonymous"; 
+    template.src = 'template.jpg'; 
 
-        const canvas = document.getElementById('certCanvas');
-        const ctx = canvas.getContext('2d');
-        const template = new Image();
-        template.crossOrigin = "anonymous"; 
-        template.src = 'template.jpg'; 
+    function startVerification() {
+        const inputVal = document.getElementById('phoneInput').value.trim();
+        const user = studentData.find(s => s.phone === inputVal);
 
-        function startVerification() {
-            const inputVal = document.getElementById('phoneInput').value.trim();
-            const user = studentData.find(s => s.phone === inputVal);
-
-            document.getElementById('searchBox').classList.add('hidden');
-            document.getElementById('loadingView').classList.remove('hidden');
-
-            setTimeout(() => {
-                document.getElementById('loadingView').classList.add('hidden');
-                document.getElementById('resultView').classList.remove('hidden');
-                
-                if (user) { render(user); } 
-                else { alert("Student not found!"); location.reload(); }
-            }, 1000);
+        if (!user) {
+            alert("Number not found!");
+            return;
         }
 
-        function render(user) {
-            const certID = `VV-2026-${user.phone.slice(-3)}`;
-            const date = "27 Mar 2026";
+        document.getElementById('searchBox').classList.add('hidden');
+        document.getElementById('loadingView').classList.remove('hidden');
 
-            const qrBox = document.getElementById("qr_hidden");
-            qrBox.innerHTML = "";
-            new QRCode(qrBox, {
-                text: `Name: ${user.name}\nID: ${certID}\nDate: ${date}`,
-                width: 150, height: 150, correctLevel : QRCode.CorrectLevel.H
-            });
-
-            setTimeout(() => {
-                const qrImg = qrBox.querySelector('img');
-                canvas.width = template.width;
-                canvas.height = template.height;
-
-                ctx.drawImage(template, 0, 0);
-
-                // --- 1. STUDENT NAME ---
-                ctx.font = "bold 45px 'Playfair Display', serif"; 
-                ctx.fillStyle = "#921919"; 
-                ctx.textAlign = "center";
-                ctx.fillText(user.name.toUpperCase(), canvas.width / 2, 530); 
-
-                // --- 2. QR CODE (Smaller & Slightly Raised) ---
-                const qrSize = 100; 
-                const rightMargin = 40; 
-                const bottomMargin = 85; // Increased to move QR UP
-                
-                ctx.fillStyle = "white";
-                ctx.fillRect(canvas.width - qrSize - rightMargin - 5, canvas.height - qrSize - bottomMargin - 5, qrSize + 10, qrSize + 10);
-                ctx.drawImage(qrImg, canvas.width - qrSize - rightMargin, canvas.height - qrSize - bottomMargin, qrSize, qrSize);
-
-                // --- 3. ID & DATE (Centered under QR) ---
-                ctx.font = "bold 16px Arial";
-                ctx.fillStyle = "#333";
-                ctx.textAlign = "center";
-                const qrCenterX = canvas.width - rightMargin - (qrSize/2);
-                ctx.fillText(`ID: ${certID}`, qrCenterX, canvas.height - bottomMargin + 18);
-                ctx.fillText(`Date: ${date}`, qrCenterX, canvas.height - bottomMargin + 34);
-
-                canvas.style.display = "block";
-            }, 300);
+        // Ensure template is loaded before rendering
+        if (template.complete) {
+            render(user);
+        } else {
+            template.onload = () => render(user);
         }
+    }
 
-        function downloadPNG() {
-            const link = document.createElement('a');
-            link.download = `Vaidya_Cert_${Date.now()}.png`;
-            link.href = canvas.toDataURL('image/png', 1.0);
-            link.click();
-        }
+    function render(user) {
+        const certID = `VV-2026-${user.phone.slice(-3)}`;
+        const date = "27 Mar 2026";
 
-        async function downloadPDF() {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
-            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
-            pdf.save(`Vaidya_Cert_${Date.now()}.pdf`);
-        }
+        const qrBox = document.getElementById("qr_hidden");
+        qrBox.innerHTML = "";
+        
+        // Generate QR
+        const qrcode = new QRCode(qrBox, {
+            text: `Name: ${user.name}\nID: ${certID}\nDate: ${date}`,
+            width: 150,
+            height: 150,
+            correctLevel : QRCode.CorrectLevel.H
+        });
 
-        function shareWhatsApp() {
-            const text = encodeURIComponent("Check out my certificate from Vaidya Vidyapeeth! 🎓");
-            window.open(`https://wa.me/?text=${text}`, '_blank');
-        }
-    </script>
+        // MOBILE FIX: Wait specifically for the QR <img> tag to appear and load
+        const checkQR = setInterval(() => {
+            const qrImg = qrBox.querySelector('img');
+            if (qrImg && qrImg.complete && qrImg.naturalWidth !== 0) {
+                clearInterval(checkQR); // QR is ready!
+                drawFinalCertificate(user, qrImg, certID, date);
+            }
+        }, 100);
+    }
+
+    function drawFinalCertificate(user, qrImg, certID, date) {
+        document.getElementById('loadingView').classList.add('hidden');
+        document.getElementById('resultView').classList.remove('hidden');
+
+        canvas.width = template.width;
+        canvas.height = template.height;
+
+        // 1. Draw Template
+        ctx.drawImage(template, 0, 0);
+
+        // 2. Student Name
+        ctx.font = "bold 85px 'Playfair Display', serif"; 
+        ctx.fillStyle = "#921919"; 
+        ctx.textAlign = "center";
+        ctx.fillText(user.name.toUpperCase(), canvas.width / 2, 590); 
+
+        // 3. QR Code (Smaller & Slightly Raised)
+        const qrSize = 100; 
+        const rightMargin = 40; 
+        const bottomMargin = 160; 
+        
+        ctx.fillStyle = "white";
+        ctx.fillRect(canvas.width - qrSize - rightMargin - 5, canvas.height - qrSize - bottomMargin - 5, qrSize + 10, qrSize + 10);
+        ctx.drawImage(qrImg, canvas.width - qrSize - rightMargin, canvas.height - qrSize - bottomMargin, qrSize, qrSize);
+
+        // 4. ID & Date
+        ctx.font = "bold 16px Arial";
+        ctx.fillStyle = "#333";
+        ctx.textAlign = "center";
+        const qrCenterX = canvas.width - rightMargin - (qrSize/2);
+        ctx.fillText(`ID: ${certID}`, qrCenterX, canvas.height - bottomMargin + 18);
+        ctx.fillText(`Date: ${date}`, qrCenterX, canvas.height - bottomMargin + 34);
+
+        canvas.style.display = "block";
+    }
+
+    function downloadPNG() {
+        const link = document.createElement('a');
+        link.download = `Vaidya_Cert_${Date.now()}.png`;
+        link.href = canvas.toDataURL('image/png', 1.0);
+        link.click();
+    }
+
+    async function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+        pdf.save(`Vaidya_Cert_${Date.now()}.pdf`);
+    }
+
+    function shareWhatsApp() {
+        const text = encodeURIComponent("Check out my certificate from Vaidya Vidyapeeth! 🎓");
+        window.open(`https://wa.me/?text=${text}`, '_blank');
+    }
+</script>
 </body>
 </html>
