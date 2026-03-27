@@ -10,107 +10,68 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
         
-        :root {
-            --maroon: #721c24;
-            --gold: #c5a059;
-            --ivory: #fcfaf2;
-        }
-
-        body { 
-            background: linear-gradient(135deg, #e9e4f0 0%, #d3d3d3 100%);
-            font-family: 'Montserrat', sans-serif;
-            color: #2d3436;
-        }
-
+        body { background: #f0f2f5; font-family: 'Montserrat', sans-serif; }
         .brand-header { font-family: 'Cinzel', serif; }
         .serif-italic { font-family: 'Playfair Display', serif; font-style: italic; }
 
-        /* Glassmorphism Effect */
         .glass-panel {
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            box-shadow: 0 40px 60px -20px rgba(0, 0, 0, 0.15);
+            background: rgba(255, 255, 255, 0.98);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
 
-        /* Animated Spinner */
-        .royal-loader {
-            width: 50px;
-            height: 50px;
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--maroon);
-            border-right: 3px solid var(--gold);
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #921919;
             border-radius: 50%;
-            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* Gold Gradient Button */
-        .btn-gold {
-            background: linear-gradient(135deg, #921919 0%, #721c24 100%);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .btn-gold:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(114, 28, 36, 0.3);
-        }
 
         #qr_hidden { display: none; }
     </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-6">
+<body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-4xl w-full glass-panel rounded-[3rem] p-10 md:p-16 text-center relative">
+    <div class="max-w-4xl w-full glass-panel rounded-[2rem] p-6 md:p-10 text-center border-t-8 border-[#921919]">
         
-        <header class="mb-12">
-            <div class="inline-block p-1 border-2 border-[#c5a059] rounded-full mb-6">
-                <div class="w-20 h-20 bg-[#721c24] rounded-full flex items-center justify-center shadow-inner">
-                    <span class="text-white font-bold text-2xl brand-header"><img src="./logo.png"></span>
-                </div>
+        <header class="mb-6">
+            <div class="w-16 h-16 bg-[#921919] rounded-full mx-auto mb-3 flex items-center justify-center shadow-md">
+                <span class="text-white font-bold text-lg brand-header"><img src="./logo.png"></span>
             </div>
-            <h1 class="text-3xl md:text-5xl brand-header text-[#721c24] tracking-widest mb-2">VAIDYA VIDYAPEETH</h1>
-            <p class="text-lg md:text-xl serif-italic text-gray-600">Certificate of फलश्रुति की पाठशाला</p>
-            <div class="flex items-center justify-center mt-6 gap-3">
-                <span class="h-[1px] w-12 bg-gray-300"></span>
-                <div class="w-2 h-2 rotate-45 bg-[#c5a059]"></div>
-                <span class="h-[1px] w-12 bg-gray-300"></span>
-            </div>
+            <h1 class="text-2xl brand-header text-[#921919]">VAIDYA VIDYAPEETH</h1>
+            <p class="text-md serif-italic text-gray-600">Certificate of फलश्रुति की पाठशाला</p>
         </header>
 
-        <div id="searchBox" class="max-w-md mx-auto space-y-8 animate-fade-in">
-            <div class="group">
-                <label class="block text-xs uppercase tracking-[0.3em] font-bold text-gray-400 mb-3">Enter Your Phone Number</label>
-                <input type="text" id="phoneInput" 
-                    class="w-full bg-white/50 border-b-2 border-gray-200 py-4 text-2xl text-center focus:border-[#c5a059] outline-none transition-all font-light tracking-widest"
-                    placeholder="91xxxxxxxxxx" maxlength="15">
-            </div>
+        <div id="searchBox" class="space-y-4 max-w-sm mx-auto">
+            <input type="text" id="phoneInput" 
+                class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl text-lg text-center focus:border-[#921919] outline-none transition-all font-bold"
+                placeholder="Enter Phone Number" maxlength="15">
             <button onclick="startVerification()" 
-                class="btn-gold w-full text-white py-5 rounded-2xl text-lg font-bold tracking-widest shadow-lg">
-                GENERATE CERTIFICATE
+                class="w-full bg-[#921919] text-white py-3 rounded-xl text-lg font-bold hover:bg-[#7a1414] transition-all shadow-lg active:scale-95">
+                Generate Certificate
             </button>
         </div>
 
-        <div id="loadingView" class="hidden py-24">
-            <div class="royal-loader mx-auto mb-8"></div>
-            <p class="text-[#721c24] font-bold tracking-[0.4em] text-sm animate-pulse">Verifying Details...</p>
+        <div id="loadingView" class="hidden py-12">
+            <div class="loader mx-auto mb-4"></div>
+            <p class="text-[#921919] font-bold animate-pulse">VERIFYING...</p>
         </div>
 
         <div id="resultView" class="hidden">
-            <div id="statusTag" class="mb-8 font-semibold text-lg tracking-wider"></div>
-            
-            <div class="overflow-hidden rounded-2xl shadow-2xl border border-white/50 mb-12 transform transition-transform hover:scale-[1.01]">
-                <canvas id="certCanvas" class="w-full h-auto cursor-crosshair"></canvas>
-            </div>
+            <div id="statusTag" class="mb-4 font-bold text-emerald-600">Verification Successful</div>
+            <canvas id="certCanvas" class="w-full rounded-lg shadow-2xl mb-6 border border-gray-200"></canvas>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <button onclick="downloadPNG()" class="bg-[#2d3436] hover:bg-black text-white py-5 rounded-xl font-bold transition-all shadow-md">IMAGE (PNG)</button>
-                <button onclick="downloadPDF()" class="bg-[#2d3436] hover:bg-black text-white py-5 rounded-xl font-bold transition-all shadow-md">DOCUMENT (PDF)</button>
-                <button onclick="shareWhatsApp()" class="bg-[#25D366] hover:bg-[#128C7E] text-white py-5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2">
-                    WHATSAPP
-                </button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <button onclick="downloadPNG()" class="bg-[#1f2937] text-white py-3 rounded-lg font-bold hover:bg-black transition-all">PNG Image</button>
+                <button onclick="downloadPDF()" class="bg-[#1f2937] text-white py-3 rounded-lg font-bold hover:bg-black transition-all">PDF File</button>
+                <button onclick="shareWhatsApp()" class="bg-[#25D366] text-white py-3 rounded-lg font-bold hover:bg-[#128C7E] transition-all">WhatsApp</button>
             </div>
             
-            <button onclick="location.reload()" class="mt-12 text-gray-400 hover:text-[#721c24] text-xs font-bold uppercase tracking-widest border-b border-gray-300 pb-1">
+            <button onclick="location.reload()" class="mt-6 text-gray-400 hover:text-[#921919] text-xs uppercase font-bold tracking-widest border-b pb-1">
                 New Verification
             </button>
         </div>
@@ -119,7 +80,6 @@
     <div id="qr_hidden"></div>
 
     <script>
-        // --- DATA ---
         const studentData = [
             { phone: "918957159735", name: "Vaidya Rameshwar singh" },
 { phone: "917093262677", name: "Vaidya Ajay Krishna . S" },
@@ -791,13 +751,12 @@
 { phone: "918507142222", name: "Vaidya Vishal Dhavle" },
 { phone: "919545465694", name: "Vaidya Yogita Tembhurne" },
 { phone: "918077784810", name: "Vaidya Anita Saini" }
+
         ];
 
         const canvas = document.getElementById('certCanvas');
         const ctx = canvas.getContext('2d');
         const template = new Image();
-        
-        // --- IMPORTANT: CORS FIX ---
         template.crossOrigin = "anonymous"; 
         template.src = 'template.jpg'; 
 
@@ -812,26 +771,20 @@
                 document.getElementById('loadingView').classList.add('hidden');
                 document.getElementById('resultView').classList.remove('hidden');
                 
-                if (user) {
-                    document.getElementById('statusTag').innerHTML = `<span class="text-emerald-600 uppercase tracking-widest">✔ Verified: ${user.name}</span>`;
-                    render(user);
-                } else {
-                    document.getElementById('statusTag').innerHTML = `<span class="text-red-500 uppercase tracking-widest">✘ Record Not Found</span>`;
-                    canvas.style.display = "none";
-                }
-            }, 2000);
+                if (user) { render(user); } 
+                else { alert("Number not found!"); location.reload(); }
+            }, 1000);
         }
 
         function render(user) {
             const certID = `VV-2026-${user.phone.slice(-3)}`;
             const date = "27 Mar 2026";
 
-            // QR Content
             const qrBox = document.getElementById("qr_hidden");
             qrBox.innerHTML = "";
             new QRCode(qrBox, {
-                text: `VERIFIED CERTIFICATE\nName: ${user.name}\nID: ${certID}\nDate: ${date}`,
-                width: 250, height: 250, correctLevel : QRCode.CorrectLevel.H
+                text: `Name: ${user.name}\nID: ${certID}\nDate: ${date}`,
+                width: 150, height: 150, correctLevel : QRCode.CorrectLevel.H
             });
 
             setTimeout(() => {
@@ -839,48 +792,51 @@
                 canvas.width = template.width;
                 canvas.height = template.height;
 
-                // 1. Draw Template
                 ctx.drawImage(template, 0, 0);
 
-                // 2. Draw Name
-                ctx.font = "bold 115px 'Playfair Display', serif";
-                ctx.fillStyle = "#721c24"; 
+                // --- 1. STUDENT NAME ---
+                ctx.font = "bold 45px 'Playfair Display', serif"; 
+                ctx.fillStyle = "#921919"; 
                 ctx.textAlign = "center";
-                ctx.fillText(user.name.toUpperCase(), canvas.width / 2, 1625);
+                ctx.fillText(user.name.toUpperCase(), canvas.width / 2, 530); 
 
-                // 3. Draw QR & Details
-                const qrSize = 240;
-                const gap = 80;
+                // --- 2. QR CODE (Smaller & Slightly Raised) ---
+                const qrSize = 100; 
+                const rightMargin = 40; 
+                const bottomMargin = 85; // Increased to move QR UP
+                
                 ctx.fillStyle = "white";
-                ctx.fillRect(canvas.width - qrSize - gap - 15, canvas.height - qrSize - gap - 15, qrSize + 30, qrSize + 30);
-                ctx.drawImage(qrImg, canvas.width - qrSize - gap, canvas.height - qrSize - gap, qrSize, qrSize);
+                ctx.fillRect(canvas.width - qrSize - rightMargin - 5, canvas.height - qrSize - bottomMargin - 5, qrSize + 10, qrSize + 10);
+                ctx.drawImage(qrImg, canvas.width - qrSize - rightMargin, canvas.height - qrSize - bottomMargin, qrSize, qrSize);
 
-                ctx.font = "bold 20px Arial";
-                ctx.fillStyle = "#2d3436";
-                ctx.textAlign = "right";
-                ctx.fillText(`ID: ${certID}`, canvas.width - gap, canvas.height - gap + 30);
-                ctx.fillText(`Issued: ${date}`, canvas.width - gap, canvas.height - gap + 55);
-            }, 200);
+                // --- 3. ID & DATE (Centered under QR) ---
+                ctx.font = "bold 16px Arial";
+                ctx.fillStyle = "#333";
+                ctx.textAlign = "center";
+                const qrCenterX = canvas.width - rightMargin - (qrSize/2);
+                ctx.fillText(`ID: ${certID}`, qrCenterX, canvas.height - bottomMargin + 18);
+                ctx.fillText(`Date: ${date}`, qrCenterX, canvas.height - bottomMargin + 34);
+
+                canvas.style.display = "block";
+            }, 300);
         }
 
         function downloadPNG() {
-            try {
-                const link = document.createElement('a');
-                link.download = `VaidyaCert_${Date.now()}.png`;
-                link.href = canvas.toDataURL('image/png', 1.0);
-                link.click();
-            } catch(e) { alert("Download failed. If testing locally, please use a local server like 'Live Server' in VS Code."); }
+            const link = document.createElement('a');
+            link.download = `Vaidya_Cert_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
         }
 
         async function downloadPDF() {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
             pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
-            pdf.save(`VaidyaCert_${Date.now()}.pdf`);
+            pdf.save(`Vaidya_Cert_${Date.now()}.pdf`);
         }
 
         function shareWhatsApp() {
-            const text = encodeURIComponent("Check out my official certificate from Vaidya Vidyapeeth! Verified & Issued.");
+            const text = encodeURIComponent("Check out my certificate from Vaidya Vidyapeeth! 🎓");
             window.open(`https://wa.me/?text=${text}`, '_blank');
         }
     </script>
