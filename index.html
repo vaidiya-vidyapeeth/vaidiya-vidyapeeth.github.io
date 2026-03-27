@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vaidya Vidyapeeth | Certificate Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+        
+        :root {
+            --maroon: #721c24;
+            --gold: #c5a059;
+            --ivory: #fcfaf2;
+        }
+
+        body { 
+            background: linear-gradient(135deg, #e9e4f0 0%, #d3d3d3 100%);
+            font-family: 'Montserrat', sans-serif;
+            color: #2d3436;
+        }
+
+        .brand-header { font-family: 'Cinzel', serif; }
+        .serif-italic { font-family: 'Playfair Display', serif; font-style: italic; }
+
+        /* Glassmorphism Effect */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 40px 60px -20px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Animated Spinner */
+        .royal-loader {
+            width: 50px;
+            height: 50px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--maroon);
+            border-right: 3px solid var(--gold);
+            border-radius: 50%;
+            animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Gold Gradient Button */
+        .btn-gold {
+            background: linear-gradient(135deg, #921919 0%, #721c24 100%);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .btn-gold:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(114, 28, 36, 0.3);
+        }
+
+        #qr_hidden { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+
+    <div class="max-w-4xl w-full glass-panel rounded-[3rem] p-10 md:p-16 text-center relative">
+        
+        <header class="mb-12">
+            <div class="inline-block p-1 border-2 border-[#c5a059] rounded-full mb-6">
+                <div class="w-20 h-20 bg-[#721c24] rounded-full flex items-center justify-center shadow-inner">
+                    <span class="text-white font-bold text-2xl brand-header"><img src="./logo.png"></span>
+                </div>
+            </div>
+            <h1 class="text-3xl md:text-5xl brand-header text-[#721c24] tracking-widest mb-2">VAIDYA VIDYAPEETH</h1>
+            <p class="text-lg md:text-xl serif-italic text-gray-600">Certificate of फलश्रुति की पाठशाला</p>
+            <div class="flex items-center justify-center mt-6 gap-3">
+                <span class="h-[1px] w-12 bg-gray-300"></span>
+                <div class="w-2 h-2 rotate-45 bg-[#c5a059]"></div>
+                <span class="h-[1px] w-12 bg-gray-300"></span>
+            </div>
+        </header>
+
+        <div id="searchBox" class="max-w-md mx-auto space-y-8 animate-fade-in">
+            <div class="group">
+                <label class="block text-xs uppercase tracking-[0.3em] font-bold text-gray-400 mb-3">Enter Your Phone Number</label>
+                <input type="text" id="phoneInput" 
+                    class="w-full bg-white/50 border-b-2 border-gray-200 py-4 text-2xl text-center focus:border-[#c5a059] outline-none transition-all font-light tracking-widest"
+                    placeholder="91xxxxxxxxxx" maxlength="15">
+            </div>
+            <button onclick="startVerification()" 
+                class="btn-gold w-full text-white py-5 rounded-2xl text-lg font-bold tracking-widest shadow-lg">
+                GENERATE CERTIFICATE
+            </button>
+        </div>
+
+        <div id="loadingView" class="hidden py-24">
+            <div class="royal-loader mx-auto mb-8"></div>
+            <p class="text-[#721c24] font-bold tracking-[0.4em] text-sm animate-pulse">Verifying Details...</p>
+        </div>
+
+        <div id="resultView" class="hidden">
+            <div id="statusTag" class="mb-8 font-semibold text-lg tracking-wider"></div>
+            
+            <div class="overflow-hidden rounded-2xl shadow-2xl border border-white/50 mb-12 transform transition-transform hover:scale-[1.01]">
+                <canvas id="certCanvas" class="w-full h-auto cursor-crosshair"></canvas>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <button onclick="downloadPNG()" class="bg-[#2d3436] hover:bg-black text-white py-5 rounded-xl font-bold transition-all shadow-md">IMAGE (PNG)</button>
+                <button onclick="downloadPDF()" class="bg-[#2d3436] hover:bg-black text-white py-5 rounded-xl font-bold transition-all shadow-md">DOCUMENT (PDF)</button>
+                <button onclick="shareWhatsApp()" class="bg-[#25D366] hover:bg-[#128C7E] text-white py-5 rounded-xl font-bold transition-all shadow-md flex items-center justify-center gap-2">
+                    WHATSAPP
+                </button>
+            </div>
+            
+            <button onclick="location.reload()" class="mt-12 text-gray-400 hover:text-[#721c24] text-xs font-bold uppercase tracking-widest border-b border-gray-300 pb-1">
+                New Verification
+            </button>
+        </div>
+    </div>
+
+    <div id="qr_hidden"></div>
+
+    <script>
+        // --- DATA ---
+        const studentData = [
+            { phone: "918957159735", name: "Vaidya Rameshwar singh" },
+{ phone: "917093262677", name: "Vaidya Ajay Krishna . S" },
+{ phone: "917877765623", name: "Vaidya Akshaj Rathor" },
+{ phone: "918155060166", name: "Vaidya Amrutiya Ayushi Jitendrab" },
+{ phone: "916207525095", name: "Vaidya Aakanksha Acharya" },
+{ phone: "917990127068", name: "Vaidya Aarti Kantak" },
+{ phone: "919824074646", name: "Vaidya Aarti Thkkar" },
+{ phone: "919407654500", name: "Vaidya Aaysha Anjum Qureshi" },
+{ phone: "919024962155", name: "Vaidya Aayush Jain" },
+{ phone: "918511628731", name: "Vaidya Abhijeet Desai" },
+{ phone: "917667869373", name: "Vaidya Abhinay" },
+{ phone: "919913032916", name: "Vaidya Abhiseak Dutta" },
+{ phone: "918951491858", name: "Vaidya Abhishek K" },
+{ phone: "917058820633", name: "Vaidya Adarsh Borkar" },
+{ phone: "917579436001", name: "Vaidya Aditya Lohani" },
+{ phone: "919348981176", name: "Vaidya Aditya Narayan Tripathy" },
+{ phone: "919016606549", name: "Vaidya Ajay Prajapati" },
+{ phone: "918477033173", name: "Vaidya Ajit Kumar" },
+{ phone: "916205234783", name: "Vaidya Akash Bhardwaj" },
+{ phone: "919560628116", name: "Vaidya Akash Singh" },
+{ phone: "918320159985", name: "Vaidya Akshar H Dave" },
+{ phone: "919011493859", name: "Vaidya Akshay Kumar" },
+{ phone: "919545887447", name: "Vaidya Akshay Patil" },
+{ phone: "919575898252", name: "Vaidya Alifiyah" },
+{ phone: "917666205332", name: "Vaidya Alisha Pol" },
+{ phone: "919032228021", name: "Vaidya Ameer Mohammed" },
+{ phone: "917015030234", name: "Vaidya Anam Ahmed" },
+{ phone: "917249005399", name: "Vaidya Anjali" },
+{ phone: "917817016215", name: "Vaidya Ankita Aggarwal" },
+{ phone: "918054712799", name: "Vaidya Anshika Tripathi" },
+{ phone: "916283160213", name: "Vaidya Anushka Kataria" },
+{ phone: "917874520638", name: "Vaidya Arpit Jani" },
+{ phone: "917873997875", name: "Vaidya Ashish Ashutosh" },
+{ phone: "918758260689", name: "Vaidya Avadh Thakkar" },
+{ phone: "9779840502970", name: "Vaidya Avinash Jaiswal" },
+{ phone: "9779846751718", name: "Vaidya Avishek Subedi" },
+{ phone: "918218235816", name: "Vaidya Ayesha Mashkoor" },
+{ phone: "916006136207", name: "Vaidya Chakshu Kak" },
+{ phone: "919829953476", name: "Vaidya Devendra Singh Rathore" },
+{ phone: "916352171797", name: "Vaidya Dharti Parmar" },
+{ phone: "917415005843", name: "Vaidya Amit Sahu" },
+{ phone: "919739044456", name: "Vaidya Anagha Sudheendra" },
+{ phone: "919425658515", name: "Vaidya Ananya Pare" },
+{ phone: "918607090193", name: "Vaidya Annu" },
+{ phone: "919026531154", name: "Vaidya Anshika Gupta" },
+{ phone: "919934359246", name: "Vaidya Anshumali Narayan" },
+{ phone: "917790955198", name: "Vaidya Arpita" },
+{ phone: "917015295518", name: "Vaidya Arti Arya" },
+{ phone: "919236019799", name: "Vaidya Arti Sharma" },
+{ phone: "918863875517", name: "Vaidya Arun Kumar" },
+{ phone: "917203045086", name: "Vaidya Arwa Lakdawala" },
+{ phone: "919528144056", name: "Vaidya Astha Verma" },
+{ phone: "919511869273", name: "Vaidya Ayan Saha" },
+{ phone: "917750019437", name: "Vaidya Badal Bagarty" },
+{ phone: "916370476951", name: "Vaidya Bangali Soren" },
+{ phone: "918238070331", name: "Vaidya Beena Bamania" },
+{ phone: "918899360001", name: "Vaidya Bhanu Pratap Singh" },
+{ phone: "919925400056", name: "Vaidya Bhargav S Bhut" },
+{ phone: "919601194799", name: "Vaidya Bhautik" },
+{ phone: "919825444313", name: "Vaidya Bhavana Hiren Variya" },
+{ phone: "919163369835", name: "Vaidya Dr Arpita" },
+{ phone: "919470942419", name: "Vaidya Dr Jyoti Kumari" },
+{ phone: "919157761361", name: "Vaidya Dhrumit Patel" },
+{ phone: "917038163805", name: "Vaidya Dipali" },
+{ phone: "917999551031", name: "Vaidya Abhishek Jatwar" },
+{ phone: "917891591172", name: "Vaidya Abhishek Sharma" },
+{ phone: "918077794087", name: "Vaidya Akhilesh Rawat" },
+{ phone: "917409880883", name: "Vaidya Anuja Kumari" },
+{ phone: "917055566603", name: "Vaidya Anusheel Mittal" },
+{ phone: "918119920625", name: "Vaidya Arnab Sarkar" },
+{ phone: "918017375854", name: "Vaidya Arpita" },
+{ phone: "916301874541", name: "Vaidya Benazir Haque" },
+{ phone: "917015680989", name: "Vaidya Bhumika" },
+{ phone: "918057168818", name: "Vaidya Divya Pathak" },
+{ phone: "918249395604", name: "Vaidya Indramani Meher" },
+{ phone: "916362287852", name: "Vaidya Mansi Malhotra" },
+{ phone: "919227715353", name: "Vaidya Megha Desai" },
+{ phone: "917000842185", name: "Vaidya Anurag Prajapati" },
+{ phone: "916263145822", name: "Vaidya Meena Sinha" },
+{ phone: "917096911587", name: "Vaidya Megha Desai" },
+{ phone: "919901282032", name: "Vaidya Bhavani T S" },
+{ phone: "919165150250", name: "Vaidya Bhavesh Patidar" },
+{ phone: "917228001195", name: "Vaidya Brinda" },
+{ phone: "919823615801", name: "Vaidya C Figer" },
+{ phone: "918233247538", name: "Vaidya Chaitanya Gautam" },
+{ phone: "919979495382", name: "Vaidya Charel Payal Suresh Bhai" },
+{ phone: "918895553626", name: "Vaidya Chudamani Sunani" },
+{ phone: "919301662452", name: "Vaidya Deeksha Prajapati" },
+{ phone: "918109333850", name: "Vaidya Deepak Chouhan" },
+{ phone: "917355216320", name: "Vaidya Deepak Kumar Kushwaha" },
+{ phone: "919131887632", name: "Vaidya Deepali Sahu" },
+{ phone: "916263137040", name: "Vaidya Deepali Sahu" },
+{ phone: "919265799772", name: "Vaidya Devaliya Ronak" },
+{ phone: "919904948292", name: "Vaidya Devansh Raval" },
+{ phone: "917283823527", name: "Vaidya Devanshi Modi" },
+{ phone: "917667601884", name: "Vaidya Devashish Narayan" },
+{ phone: "919727007478", name: "Vaidya Devendra Chaudhary" },
+{ phone: "919926161730", name: "Vaidya Devendra Singh" },
+{ phone: "918965015254", name: "Vaidya Dhanshree Rathore" },
+{ phone: "919265886780", name: "Vaidya Dhaval Bhimani" },
+{ phone: "918121584681", name: "Vaidya Mohd Zahid Siddique" },
+{ phone: "917017510454", name: "Vaidya Mohd Salim Khan" },
+{ phone: "918140560060", name: "Vaidya Moxa Kothari" },
+{ phone: "917709984472", name: "Vaidya Mubin Mulla" },
+{ phone: "917022092130", name: "Vaidya N. Geeta Bhat" },
+{ phone: "917009597395", name: "Vaidya Neha Chetal" },
+{ phone: "916397194469", name: "Vaidya Neha Munaf" },
+{ phone: "917770868585", name: "Vaidya Pranjali Shukla" },
+{ phone: "916389922286", name: "Vaidya Prashant Singh" },
+{ phone: "918094710915", name: "Vaidya Pritika" },
+{ phone: "917000136327", name: "Vaidya Rahul Nikum" },
+{ phone: "918171129832", name: "Vaidya Ritik Chauhan" },
+{ phone: "919467667271", name: "Vaidya Sourav Bhardwaj" },
+{ phone: "918090589477", name: "Vaidya Suraj Kumar" },
+{ phone: "919198828349", name: "Vaidya Surya Prakash Chaturvedi" },
+{ phone: "917888290286", name: "Vaidya Vaishnavi Avghate" },
+{ phone: "9779810127021", name: "Vaidya Bibhoosha Kafle" },
+{ phone: "917388702630", name: "Vaidya Diksha Singh" },
+{ phone: "916354339656", name: "Vaidya Hetvi Koyani" },
+{ phone: "918780235955", name: "Vaidya Jaypal Dangar" },
+{ phone: "919737995332", name: "Vaidya Dhaval Parmar" },
+{ phone: "919638655466", name: "Vaidya Dhruvi Chopda" },
+{ phone: "917895423340", name: "Vaidya Diksh" },
+{ phone: "918178789261", name: "Vaidya Diksha" },
+{ phone: "919773010575", name: "Vaidya Dimpi Anilbhai Modi" },
+{ phone: "919925349171", name: "Vaidya Mehul Chauhan" },
+{ phone: "918955390501", name: "Vaidya Aastha" },
+{ phone: "918933009664", name: "Vaidya Abhishek Kumar" },
+{ phone: "919634124150", name: "Vaidya Aditi Chaudhary" },
+{ phone: "917974059943", name: "Vaidya Aklesh Verma" },
+{ phone: "918866386377", name: "Vaidya Alpesh Bhadaniya" },
+{ phone: "918698142236", name: "Vaidya Amit Punekar" },
+{ phone: "917088347175", name: "Vaidya Amita Rana" },
+{ phone: "919764385736", name: "Vaidya Amrin Kureshi" },
+{ phone: "917280809590", name: "Vaidya Angesh Kumar" },
+{ phone: "918740963046", name: "Vaidya Aniket Prakash" },
+{ phone: "919350442858", name: "Vaidya Arpit" },
+{ phone: "919971768405", name: "Vaidya Arvind Panchal" },
+{ phone: "919322934350", name: "Vaidya Ashwini Gawari" },
+{ phone: "917424806116", name: "Vaidya Kavita Dadhich" },
+{ phone: "919969072572", name: "Vaidya Natasha Sheshware" },
+{ phone: "919758974105", name: "Vaidya Prateek Maheshwari" },
+{ phone: "917619284890", name: "Vaidya Priyanka Rathod" },
+{ phone: "917975064718", name: "Vaidya Sheshankagouda Patil" },
+{ phone: "917404600200", name: "Vaidya Shubham" },
+{ phone: "916355187101", name: "Vaidya Abhik Raval" },
+{ phone: "919654993171", name: "Vaidya Arvind Panchal" },
+{ phone: "917984636539", name: "Vaidya Bristi B. Devda" },
+{ phone: "917060562578", name: "Vaidya Gargi Verma" },
+{ phone: "917698370898", name: "Vaidya Helly Pandya" },
+{ phone: "919557183396", name: "Vaidya Ishak Khan" },
+{ phone: "917415894242", name: "Vaidya Jyoti Patle" },
+{ phone: "917987578758", name: "Vaidya Nikita Tadge" },
+{ phone: "918607761760", name: "Vaidya Naveen Dhatarwal" },
+{ phone: "918078634869", name: "Vaidya Nishant" },
+{ phone: "917359012062", name: "Vaidya Niti Laheru" },
+{ phone: "918421741810", name: "Vaidya Poonam Koli" },
+{ phone: "916261261781", name: "Vaidya Rishabh Singh" },
+{ phone: "917898190667", name: "Vaidya Shubham Singh" },
+{ phone: "918625840936", name: "Vaidya Akash Warhade" },
+{ phone: "916355410860", name: "Vaidya Drashti Prajapati" },
+{ phone: "918861823432", name: "Vaidya B Nagaveni" },
+{ phone: "919099437133", name: "Vaidya Bhargav Tanna" },
+{ phone: "917405385637", name: "Vaidya Bhavneshkumar Balvantbhai Tandel" },
+{ phone: "918570910507", name: "Vaidya Bhawna Chhan" },
+{ phone: "919825705706", name: "Vaidya Binita Piyush Busa" },
+{ phone: "918708286119", name: "Vaidya Dev Singh" },
+{ phone: "917587193134", name: "Vaidya Dhaniram Bhoyer" },
+{ phone: "919265014966", name: "Vaidya Disha J Sakalshawala" },
+{ phone: "918983626368", name: "Vaidya Geetanjali Malvadkar More" },
+{ phone: "919611297962", name: "Vaidya H N Prabhudev" },
+{ phone: "917016785301", name: "Vaidya Happy Patel" },
+{ phone: "918000428370", name: "Vaidya Harsh Patel" },
+{ phone: "919530180262", name: "Vaidya Jyoti Joshi" },
+{ phone: "919502898663", name: "Vaidya Kowdapollagari Sudha" },
+{ phone: "918115144210", name: "Vaidya Karhna Shankar" },
+{ phone: "919106720045", name: "Vaidya Kavita Patel" },
+{ phone: "919844112299", name: "Vaidya Kavitha" },
+{ phone: "919907003455", name: "Vaidya Krishna Gopal Gupta" },
+{ phone: "918758133745", name: "Vaidya Divya" },
+{ phone: "919510317578", name: "Vaidya Jatin Kanjariya" },
+{ phone: "917898190667", name: "Vaidya Shubham Singh" },
+{ phone: "917381218856", name: "Vaidya Subhrajyoti Moharana" },
+{ phone: "917817976766", name: "Vaidya Yogesh Padhiyar" },
+{ phone: "918140992909", name: "Vaidya Drashti Akhani" },
+{ phone: "918126914291", name: "Vaidya Garima Saini" },
+{ phone: "919424260803", name: "Vaidya Govind Rathi" },
+{ phone: "919512231249", name: "Vaidya Hetal Patel" },
+{ phone: "918780792101", name: "Vaidya Honey Shah" },
+{ phone: "917618613542", name: "Vaidya Irfan Raja" },
+{ phone: "918140136545", name: "Vaidya Jashvantsinh Parbat Bhai Jadav" },
+{ phone: "917067778344", name: "Vaidya Kartikeya Sharma" },
+{ phone: "917508541181", name: "Vaidya Kajal Sharma" },
+{ phone: "9779820796697", name: "Vaidya Kanchan Y." },
+{ phone: "918238452518", name: "Vaidya Khushali Tamaichi" },
+{ phone: "917028504624", name: "Vaidya Krishna Khandediya" },
+{ phone: "916300409890", name: "Vaidya Lasya" },
+{ phone: "9779862991853", name: "Vaidya Luna Khatiwada" },
+{ phone: "917387182299", name: "Vaidya Madhuri Chandak" },
+{ phone: "917383637855", name: "Vaidya Mamta Ahir" },
+{ phone: "918340659862", name: "Vaidya Dr Nitish Kumar" },
+{ phone: "918692802098", name: "Vaidya Krishna Soni" },
+{ phone: "917869531910", name: "Vaidya Krishnakant Bhosle" },
+{ phone: "919316105347", name: "Vaidya Krupa Brahmbhatt" },
+{ phone: "918793482966", name: "Vaidya Kshitija Shetye" },
+{ phone: "918376935656", name: "Vaidya Kuldeep" },
+{ phone: "918950805210", name: "Vaidya Lakhan Rohilla" },
+{ phone: "919426459943", name: "Vaidya Manali Damji Chad" },
+{ phone: "919739388498", name: "Vaidya Mangala D Kamath" },
+{ phone: "919098261999", name: "Vaidya Manshi Bhoi" },
+{ phone: "916000097020", name: "Vaidya Mashud Ahmed" },
+{ phone: "917490898887", name: "Vaidya Mayur" },
+{ phone: "918895971090", name: "Vaidya Milan Kumar Routray" },
+{ phone: "919404306517", name: "Vaidya Neha Turkar" },
+{ phone: "919064246311", name: "Vaidya Nirmal Debnath" },
+{ phone: "918193990930", name: "Vaidya Nirmal Singh Saurot" },
+{ phone: "918200672200", name: "Vaidya Nutvi Aghera" },
+{ phone: "916362823343", name: "Vaidya Pooja" },
+{ phone: "917417459735", name: "Vaidya Pranav Bhardwaj" },
+{ phone: "918699296467", name: "Vaidya Muskan" },
+{ phone: "917310152291", name: "Vaidya Mohd Ishaq" },
+{ phone: "917417150693", name: "Vaidya Mohit Singh Choudhary" },
+{ phone: "917069513542", name: "Vaidya Monil Dodia" },
+{ phone: "917337387921", name: "Vaidya Mudassir Khan" },
+{ phone: "918980589525", name: "Vaidya Naisargi Thakkar" },
+{ phone: "919639310011", name: "Vaidya Namita Varshney" },
+{ phone: "918208092548", name: "Vaidya Nayan Mahajan" },
+{ phone: "917623052014", name: "Vaidya Nirali Jethva" },
+{ phone: "917895324920", name: "Vaidya Parv Kataria" },
+{ phone: "919462627581", name: "Vaidya Payal Khatri" },
+{ phone: "917879405848", name: "Vaidya Pramod" },
+{ phone: "916398858224", name: "Vaidya Priyansh Sharma" },
+{ phone: "917357167512", name: "Vaidya Rakshita Goswami" },
+{ phone: "918000007057", name: "Vaidya Rudra Thakkar" },
+{ phone: "917447490658", name: "Vaidya Samiksha Giri" },
+{ phone: "919813668975", name: "Vaidya Samriti" },
+{ phone: "916239023257", name: "Vaidya Sandhya Verma" },
+{ phone: "917523972268", name: "Vaidya Satyam Kushwaha" },
+{ phone: "919766284744", name: "Vaidya Saurabh Devde" },
+{ phone: "917710838836", name: "Vaidya Sayali Patil" },
+{ phone: "919925495253", name: "Vaidya Dr Rameshvari Chaudhari" },
+{ phone: "917017391422", name: "Vaidya Pranav Yadav" },
+{ phone: "919130829084", name: "Vaidya Pranjali Dinkar Karande" },
+{ phone: "919850576747", name: "Vaidya Pratiksha Dinanath Godbharle" },
+{ phone: "919561225172", name: "Vaidya Pratiksha Kalaskar" },
+{ phone: "918003264218", name: "Vaidya Priyal Sharma" },
+{ phone: "919429771234", name: "Vaidya Priyanka Verma" },
+{ phone: "919920111662", name: "Vaidya Purvi" },
+{ phone: "918233276077", name: "Vaidya Rahul Suthar" },
+{ phone: "919142893196", name: "Vaidya Rashmi Raj" },
+{ phone: "917046454748", name: "Vaidya Sagar" },
+{ phone: "919611566470", name: "Vaidya Samrudhi Bhanudas Jogmarge" },
+{ phone: "919926411491", name: "Vaidya Shailesh Singh Chouhan" },
+{ phone: "918827796712", name: "Vaidya Shashi Paikra" },
+{ phone: "919071959659", name: "Vaidya Sheshankgouda Patil" },
+{ phone: "918962388173", name: "Vaidya Shreya Tiwari" },
+{ phone: "918290698520", name: "Vaidya Shruti Gupta" },
+{ phone: "919167489596", name: "Vaidya Shubham Mahajan" },
+{ phone: "919644116005", name: "Vaidya Ravina Jain" },
+{ phone: "918431923483", name: "Vaidya Sainath Mulgi" },
+{ phone: "917080914465", name: "Vaidya Shubhanshi Chandra" },
+{ phone: "919537055608", name: "Vaidya Sejal Patel" },
+{ phone: "917906705917", name: "Vaidya Sheetal Rana" },
+{ phone: "918840438570", name: "Vaidya Shilpa Pandey" },
+{ phone: "918140204720", name: "Vaidya Shivangi Rathod" },
+{ phone: "917802084308", name: "Vaidya Shivani Soni" },
+{ phone: "919756130754", name: "Vaidya Shreya" },
+{ phone: "916353622904", name: "Vaidya Siddharth N Desai" },
+{ phone: "918530783189", name: "Vaidya Simran Gadge" },
+{ phone: "917249434266", name: "Vaidya Sneha Rokade" },
+{ phone: "919328515615", name: "Vaidya Tarulatta Keraliya" },
+{ phone: "917015866193", name: "Vaidya Tarun" },
+{ phone: "917208421365", name: "Vaidya Thushari Alwis" },
+{ phone: "919574467508", name: "Vaidya Utsav Tanna" },
+{ phone: "917011761340", name: "Vaidya Vaidya Abhay Mishra" },
+{ phone: "918954219070", name: "Vaidya Vaidya Aditya Raj" },
+{ phone: "918871763077", name: "Vaidya Vaidya Bhushan Rajak" },
+{ phone: "917807110579", name: "Vaidya Vaidya Mit" },
+{ phone: "917649913899", name: "Vaidya Vaidya Mitesh Kumar" },
+{ phone: "917340615206", name: "Vaidya Vaidya Nirmal Kumar Dewasi" },
+{ phone: "919665481616", name: "Vaidya Shubham Sable" },
+{ phone: "918966043247", name: "Vaidya Shubham Shrivastava" },
+{ phone: "916353458848", name: "Vaidya Shuchi Patel" },
+{ phone: "919772835875", name: "Vaidya Sohan Lal Tabiyar" },
+{ phone: "919764076340", name: "Vaidya Sruthi Thejus" },
+{ phone: "918847846370", name: "Vaidya Trailokya Padhan" },
+{ phone: "918896375108", name: "Vaidya Utkarsh Patel" },
+{ phone: "919499777718", name: "Vaidya Vaishali Sojitra" },
+{ phone: "919462914223", name: "Vaidya Sumit Aggarwal" },
+{ phone: "917507319936", name: "Vaidya Akash Barve" },
+{ phone: "919205306562", name: "Vaidya Annu Priya" },
+{ phone: "919760560877", name: "Vaidya Abhilasha Singh" },
+{ phone: "919880122227", name: "Vaidya Adithya Narayana Bhat" },
+{ phone: "919926072042", name: "Vaidya Ajay Barik" },
+{ phone: "918871176115", name: "Vaidya Anju Sonkar" },
+{ phone: "918770452124", name: "Vaidya Chanchala Patidar" },
+{ phone: "919713024756", name: "Vaidya Chinmay" },
+{ phone: "919909212102", name: "Vaidya Dhruvita Nareshbhai Dhameliya" },
+{ phone: "918360766452", name: "Vaidya Eshta" },
+{ phone: "918793728382", name: "Vaidya Ganesh Purushottam Deokar" },
+{ phone: "919026366890", name: "Vaidya Vaidya Shadab Ali Siddiqui" },
+{ phone: "917405781737", name: "Vaidya Vala Bhavya Prashantbhai" },
+{ phone: "919997201793", name: "Vaidya Aradhana Nautiyal" },
+{ phone: "917302255436", name: "Vaidya Arti Panwar" },
+{ phone: "917055092912", name: "Vaidya Garima Pandey" },
+{ phone: "919879347480", name: "Vaidya Ghansyam" },
+{ phone: "918160588464", name: "Vaidya Harsh Rathod" },
+{ phone: "917876993300", name: "Vaidya Sumit Bakshi" },
+{ phone: "918320258651", name: "Vaidya Anushree Kulkarni" },
+{ phone: "918445050131", name: "Vaidya Arjun Nanda" },
+{ phone: "917621093168", name: "Vaidya Chaitri Hareshbhai Patel" },
+{ phone: "917646831711", name: "Vaidya Devesh Kumar Banwasi" },
+{ phone: "917073063955", name: "Vaidya Devesh Pareek" },
+{ phone: "917383828182", name: "Vaidya Ishita Patel" },
+{ phone: "917389808594", name: "Vaidya Paras Leve" },
+{ phone: "917895859068", name: "Vaidya Hitesh Pant" },
+{ phone: "917023866577", name: "Vaidya Deepak Teli" },
+{ phone: "916354219191", name: "Vaidya Dhruv Mori" },
+{ phone: "919316411317", name: "Vaidya Vandana Haraniya" },
+{ phone: "917559259939", name: "Vaidya Ismat Zahra" },
+{ phone: "919664924404", name: "Vaidya Dr. Harit Sojitra" },
+{ phone: "919996362222", name: "Vaidya Gaurav" },
+{ phone: "919406059652", name: "Vaidya Jagrity Verma" },
+{ phone: "919372070590", name: "Vaidya Keshav Ramsureman Chaudhary" },
+{ phone: "919301497670", name: "Vaidya Khushboo Izardar" },
+{ phone: "916351801875", name: "Vaidya Krupa Kagathara" },
+{ phone: "919423067974", name: "Vaidya Madhura Manoj Palode" },
+{ phone: "919537964888", name: "Vaidya Mahmadmansur Piludiya" },
+{ phone: "919571000440", name: "Vaidya Manju Nemiwal" },
+{ phone: "917046258087", name: "Vaidya Mantavya Prajapati" },
+{ phone: "918602013782", name: "Vaidya Masum Sharma" },
+{ phone: "919389952775", name: "Vaidya Mohd Kashif" },
+{ phone: "919589009855", name: "Vaidya Monika Shrivastava" },
+{ phone: "916359113839", name: "Vaidya Nidhi Kanetiya" },
+{ phone: "917874857371", name: "Vaidya Payal Maheriya" },
+{ phone: "919165686422", name: "Vaidya Pooja Sahu" },
+{ phone: "919409381334", name: "Vaidya Poorva Gaglani" },
+{ phone: "918958036967", name: "Vaidya Prachi Patni" },
+{ phone: "919870815463", name: "Vaidya Pragya Agarwal" },
+{ phone: "918506050303", name: "Vaidya Preeti Anand" },
+{ phone: "917894422358", name: "Vaidya Vr.Prakash Naik" },
+{ phone: "917600601372", name: "Vaidya Maya Patel" },
+{ phone: "918160018455", name: "Vaidya Maya Patel" },
+{ phone: "919313433606", name: "Vaidya Memu" },
+{ phone: "917067245412", name: "Vaidya Keshav Sahu" },
+{ phone: "917415392666", name: "Vaidya Vishal Gupta" },
+{ phone: "919568898300", name: "Vaidya Waris Pasha" },
+{ phone: "918054126688", name: "Vaidya Yashamita" },
+{ phone: "917339999983", name: "Vaidya Yashika Verma" },
+{ phone: "917878611600", name: "Vaidya Yukti Bolia" },
+{ phone: "919668566466", name: "Vaidya Preeti Sundar Sahoo" },
+{ phone: "918770501550", name: "Vaidya Prerna Netam" },
+{ phone: "918770143788", name: "Vaidya Rajesh Sao" },
+{ phone: "919408609796", name: "Vaidya Rajvi Ashokkumar Shukla" },
+{ phone: "919312151237", name: "Vaidya Ram Kumar" },
+{ phone: "917787874834", name: "Vaidya Rashmita Tiga" },
+{ phone: "918579061147", name: "Vaidya Ravi Bhushan Jha" },
+{ phone: "919527533820", name: "Vaidya Roma Sharma" },
+{ phone: "919537093418", name: "Vaidya Roshani Patel" },
+{ phone: "917037810883", name: "Vaidya Runal Singh" },
+{ phone: "919537334285", name: "Vaidya Shreyanshkumar Parmar" },
+{ phone: "919689487008", name: "Vaidya Shruti Sagar Chaudhari" },
+{ phone: "917275698529", name: "Vaidya Shweta T" },
+{ phone: "918421658346", name: "Vaidya Simple Hinduja" },
+{ phone: "919771891095", name: "Vaidya Simran" },
+{ phone: "919109938826", name: "Vaidya Soumya Singh" },
+{ phone: "918269191910", name: "Vaidya Udit Saxena" },
+{ phone: "919584655859", name: "Vaidya Vipin Chandra Biswas" },
+{ phone: "918155884076", name: "Vaidya Vyas Mahek Hiteshbhai" },
+{ phone: "918878214857", name: "Vaidya Yashsvini Chouhan" },
+{ phone: "919561878357", name: "Vaidya Dr.Girish Thakare" },
+{ phone: "919375071333", name: "Vaidya Yesha Kacha" },
+{ phone: "918435756777", name: "Vaidya Aabid Khan" },
+{ phone: "917379265630", name: "Vaidya Aditya Jaiswal" },
+{ phone: "917906464497", name: "Vaidya Akshya" },
+{ phone: "917030316950", name: "Vaidya Anand Tiwari" },
+{ phone: "917489076595", name: "Vaidya Anshul Baradiya" },
+{ phone: "919408597316", name: "Vaidya Aparna Deshpande" },
+{ phone: "917047879003", name: "Vaidya Arpita Das" },
+{ phone: "918884550708", name: "Vaidya Aruna Kumari. Suraboyani" },
+{ phone: "917651910076", name: "Vaidya Ashutosh Tiwari" },
+{ phone: "919406155441", name: "Vaidya Astha Gaur" },
+{ phone: "919050318771", name: "Vaidya Bhupender" },
+{ phone: "918886080001", name: "Vaidya Deepa P" },
+{ phone: "919536836569", name: "Vaidya Dheeraj Dhakrey" },
+{ phone: "919662880171", name: "Vaidya Dherendra Pratap Yadav" },
+{ phone: "918200761046", name: "Vaidya Dhrupali Panchal" },
+{ phone: "919826932839", name: "Vaidya Himanshu Datt Pandey" },
+{ phone: "919455909680", name: "Vaidya Himanshu Mishra" },
+{ phone: "919687331512", name: "Vaidya Jaimini Kadiya" },
+{ phone: "918277206740", name: "Vaidya Dr.Naresh" },
+{ phone: "917249141557", name: "Vaidya Jayant Marpallikar" },
+{ phone: "919081441778", name: "Vaidya Jhanvi Brahmbhatt" },
+{ phone: "919663365044", name: "Vaidya Laxmikant Kambali" },
+{ phone: "919560349185", name: "Vaidya Manish Bharti Yadauvanshi" },
+{ phone: "919934015320", name: "Vaidya Manish Kumar" },
+{ phone: "919924920877", name: "Vaidya Mital" },
+{ phone: "919925231236", name: "Vaidya Mitali Makwana" },
+{ phone: "917974400602", name: "Vaidya Nidhi Vashistha" },
+{ phone: "918349162929", name: "Vaidya Nikita Tadge" },
+{ phone: "919825512723", name: "Vaidya Nikunj M Dhandhukiya" },
+{ phone: "919922681345", name: "Vaidya Priya Shinde" },
+{ phone: "919033423540", name: "Vaidya Raghav Pandya" },
+{ phone: "919977428884", name: "Vaidya Rajesh S.Yadav" },
+{ phone: "917814423366", name: "Vaidya Ranjan" },
+{ phone: "919033778454", name: "Vaidya Rehnuma Shaikh" },
+{ phone: "919591611400", name: "Vaidya Roopashree" },
+{ phone: "918308106951", name: "Vaidya Rounak Naik" },
+{ phone: "919871098602", name: "Vaidya Sunil Kumar Bhatia" },
+{ phone: "919811286721", name: "Vaidya Ritesh" },
+{ phone: "919602685315", name: "Vaidya Teena Patidar" },
+{ phone: "918447415417", name: "Vaidya Trupti Tembhare" },
+{ phone: "916351582545", name: "Vaidya Vaidehi Soni" },
+{ phone: "919111451240", name: "Vaidya Drramsahay Chadar" },
+{ phone: "918927791663", name: "Vaidya Foram Lakhani" },
+{ phone: "919493698186", name: "Vaidya G Chaya Deepti" },
+{ phone: "919373059918", name: "Vaidya Ganesh Kulkarni" },
+{ phone: "918077058078", name: "Vaidya Gaurav" },
+{ phone: "918979055663", name: "Vaidya Gaurav Kushwaha" },
+{ phone: "917014372725", name: "Vaidya Gaurav Sharma" },
+{ phone: "916352699149", name: "Vaidya Ghata Pujara" },
+{ phone: "919258627706", name: "Vaidya Gravit Mittal" },
+{ phone: "919972616593", name: "Vaidya Halima Sulthana" },
+{ phone: "919955490705", name: "Vaidya Hansika Kumari" },
+{ phone: "916354080921", name: "Vaidya Happy Patel" },
+{ phone: "918155943860", name: "Vaidya Hardik Prajapati" },
+{ phone: "916355250458", name: "Vaidya Harsh Savaliya" },
+{ phone: "916354039754", name: "Vaidya Harshad Damor" },
+{ phone: "917518587292", name: "Vaidya Dr mansi singh" },
+{ phone: "917988787092", name: "Vaidya Heena Sharma" },
+{ phone: "919924125210", name: "Vaidya Himadri Shukla" },
+{ phone: "917567565579", name: "Vaidya Himani Dave" },
+{ phone: "917030381585", name: "Vaidya Himani Gaikwad" },
+{ phone: "919494517741", name: "Vaidya Himanshi Choudhary" },
+{ phone: "919016640466", name: "Vaidya Himanshu Khemchandbhai Parmar" },
+{ phone: "919422077896", name: "Vaidya Hiral Patel" },
+{ phone: "919981824002", name: "Vaidya Indu Patel" },
+{ phone: "916351407735", name: "Vaidya Isha Chandubhai Vekariya" },
+{ phone: "918275430383", name: "Vaidya Isha Kamlesh Lodha" },
+{ phone: "916355861203", name: "Vaidya Jaimin Patel" },
+{ phone: "919664612551", name: "Vaidya Janki Jitendrabhai Gami" },
+{ phone: "919327054665", name: "Vaidya Janki Patel" },
+{ phone: "919252512213", name: "Vaidya Javed Akhter" },
+{ phone: "916354086916", name: "Vaidya Jay Patel" },
+{ phone: "918085262925", name: "Vaidya Jayanti Pal" },
+{ phone: "917987372887", name: "Vaidya Jayshree Sahu" },
+{ phone: "919426620253", name: "Vaidya Jolly Sompura" },
+{ phone: "917768872702", name: "Vaidya Kalpak Patil" },
+{ phone: "918286185785", name: "Vaidya Khan Nurooddin" },
+{ phone: "919924667576", name: "Vaidya Khatri Krupa" },
+{ phone: "917060035239", name: "Vaidya Komal Sachan" },
+{ phone: "919313144122", name: "Vaidya Krunal Raja" },
+{ phone: "919667850334", name: "Vaidya Khushi Jain" },
+{ phone: "918469461128", name: "Vaidya Khushi Thakkar" },
+{ phone: "919810902410", name: "Vaidya Kiran Kalra" },
+{ phone: "918690554974", name: "Vaidya Kirti" },
+{ phone: "918882715534", name: "Vaidya Kirti Rathore" },
+{ phone: "919354423938", name: "Vaidya Km Aksha" },
+{ phone: "918607755504", name: "Vaidya Komal" },
+{ phone: "919737407743", name: "Vaidya Komal Bamanya" },
+{ phone: "919620893327", name: "Vaidya Komal Naiknaware" },
+{ phone: "919328232250", name: "Vaidya Krina Patel" },
+{ phone: "919824613648", name: "Vaidya Krisha Shah" },
+{ phone: "919473826500", name: "Vaidya Kriti Mani" },
+{ phone: "916354333054", name: "Vaidya Krupansh Namera" },
+{ phone: "919922089080", name: "Vaidya Krutika Godse" },
+{ phone: "919643570505", name: "Vaidya Kumud" },
+{ phone: "919602508775", name: "Vaidya Lakshya Sharma" },
+{ phone: "918217232621", name: "Vaidya Lalkrishna Yadav" },
+{ phone: "919878765838", name: "Vaidya Lovepreet Singh" },
+{ phone: "919862991853", name: "Vaidya Luna Khatiwada" },
+{ phone: "919824944300", name: "Vaidya Monali Babariya" },
+{ phone: "919849913420", name: "Vaidya Muggulla Anusha" },
+{ phone: "918755981904", name: "Vaidya Mamta Kumari" },
+{ phone: "918517059839", name: "Vaidya Manasvi K" },
+{ phone: "919652239629", name: "Vaidya Mandava Bala Subrahmanyam" },
+{ phone: "919870599248", name: "Vaidya Mangala Kotnis" },
+{ phone: "919079724554", name: "Vaidya Manish Kumar" },
+{ phone: "917669877733", name: "Vaidya Manisha Bishnoi" },
+{ phone: "918810592110", name: "Vaidya Manju" },
+{ phone: "918808067956", name: "Vaidya Manoj Kumar" },
+{ phone: "918196931325", name: "Vaidya Mansi" },
+{ phone: "919328840735", name: "Vaidya Mauli Thakkar" },
+{ phone: "918605793400", name: "Vaidya Meghraj Bhande" },
+{ phone: "918398975788", name: "Vaidya Mohan Kumar" },
+{ phone: "918630075822", name: "Vaidya Mohd Siraz" },
+{ phone: "918532977754", name: "Vaidya Mohini" },
+{ phone: "917775084724", name: "Vaidya Mrunal Kandalkar" },
+{ phone: "916363366320", name: "Vaidya Mruthyunjaya S H" },
+{ phone: "919723419129", name: "Vaidya Mitesh Patel" },
+{ phone: "917397978598", name: "Vaidya Mule Bhagyashri" },
+{ phone: "919403424727", name: "Vaidya Nagesh Godari" },
+{ phone: "918888799530", name: "Vaidya Nainsi Chouksey" },
+{ phone: "917988535522", name: "Vaidya Naman Sain" },
+{ phone: "919307171879", name: "Vaidya Namit Patel" },
+{ phone: "919541660802", name: "Vaidya Narender Kumar" },
+{ phone: "918319968572", name: "Vaidya Neha Dubey" },
+{ phone: "916353594090", name: "Vaidya Nidhi Malkiya" },
+{ phone: "917606886211", name: "Vaidya Niharika Panda" },
+{ phone: "919712341994", name: "Vaidya Nikunj Mahavirbhai Patel" },
+{ phone: "918770642862", name: "Vaidya Nirma Manikdive" },
+{ phone: "918791488566", name: "Vaidya Nirmala Mehta" },
+{ phone: "918866346215", name: "Vaidya Nishit Bhatti" },
+{ phone: "919901103279", name: "Vaidya Niti Laheru" },
+{ phone: "919373697827", name: "Vaidya Om Jadhav" },
+{ phone: "916354364336", name: "Vaidya Panchal Danesh" },
+{ phone: "919892597944", name: "Vaidya Pankaj Pawar" },
+{ phone: "918450939910", name: "Vaidya Parinita Kaundal" },
+{ phone: "919725037879", name: "Vaidya Parth Jotania" },
+{ phone: "919904550120", name: "Vaidya Omkarsinh Jadeja" },
+{ phone: "919045862828", name: "Vaidya Pooja" },
+{ phone: "916356572004", name: "Vaidya Parth Patel" },
+{ phone: "919116436374", name: "Vaidya Parul Patle" },
+{ phone: "917974062724", name: "Vaidya Parul Tuwari" },
+{ phone: "917433888032", name: "Vaidya Patel Shivangini" },
+{ phone: "919106688380", name: "Vaidya Pathan Aashnabanu.S." },
+{ phone: "919265268199", name: "Vaidya Pinkal Khant" },
+{ phone: "916266505205", name: "Vaidya Pooja Singh" },
+{ phone: "917970584035", name: "Vaidya Prachi Kumari" },
+{ phone: "919691210662", name: "Vaidya Prachi Sinha" },
+{ phone: "919264919539", name: "Vaidya Pradarsh" },
+{ phone: "919834277349", name: "Vaidya Pradnya Patil" },
+{ phone: "917057535868", name: "Vaidya Pragati Thombare" },
+{ phone: "918319778310", name: "Vaidya Pranjali Bhardwaj" },
+{ phone: "918605799688", name: "Vaidya Pratima Kashinath Barate" },
+{ phone: "918290246143", name: "Vaidya Praveen Kumar Suthar" },
+{ phone: "919643278737", name: "Vaidya Preety Dubbal" },
+{ phone: "918401371651", name: "Vaidya Prins Modh" },
+{ phone: "919767082156", name: "Vaidya Priyanka Khiradkar" },
+{ phone: "919639642171", name: "Vaidya Pragya Dabral" },
+{ phone: "917688955642", name: "Vaidya Priyanka Verma" },
+{ phone: "917428107399", name: "Vaidya Priyanka Zende" },
+{ phone: "917795666191", name: "Vaidya Pushkar Rai" },
+{ phone: "919574453643", name: "Vaidya Ridham Vinodkumar Trive" },
+{ phone: "917276180965", name: "Vaidya Rachana Gharat" },
+{ phone: "919636529768", name: "Vaidya Rahul Kumar Patidar" },
+{ phone: "919621831627", name: "Vaidya Rahul Kumar Verma" },
+{ phone: "918273413610", name: "Vaidya Rahul Shsrma" },
+{ phone: "918153901807", name: "Vaidya Raj Patel" },
+{ phone: "919664706904", name: "Vaidya Rajan Karangiya" },
+{ phone: "919766199663", name: "Vaidya Rajani" },
+{ phone: "918957652741", name: "Vaidya Rajat Gupta" },
+{ phone: "918755842669", name: "Vaidya Rajat Singhal" },
+{ phone: "918928477321", name: "Vaidya Rajlaxmi Dasamane" },
+{ phone: "917619616298", name: "Vaidya Ramya" },
+{ phone: "919759066361", name: "Vaidya Rashmi Singh" },
+{ phone: "917976819201", name: "Vaidya Ravinder Singh" },
+{ phone: "917004680282", name: "Vaidya Riddhi Kumari" },
+{ phone: "916306057479", name: "Vaidya Rishita Upadhyay" },
+{ phone: "918459553001", name: "Vaidya Ritika Bhosle" },
+{ phone: "918462836726", name: "Vaidya Rouble Solanki" },
+{ phone: "918130204563", name: "Vaidya Rupesh Kumar Mishra" },
+{ phone: "918875728086", name: "Vaidya Sachin Chauhan" },
+{ phone: "919662573277", name: "Vaidya Sagar Sorathiya" },
+{ phone: "919673423410", name: "Vaidya Saisha Mhatre" },
+{ phone: "918700568333", name: "Vaidya Sakshi Prakash" },
+{ phone: "919878765720", name: "Vaidya Sakshi Sharma" },
+{ phone: "918217772754", name: "Vaidya Salma Begum" },
+{ phone: "919302009700", name: "Vaidya Salma Minj" },
+{ phone: "919050260195", name: "Vaidya Saloni Mangla" },
+{ phone: "917621037431", name: "Vaidya Samay Bavaliya" },
+{ phone: "918894183343", name: "Vaidya Sandeep" },
+{ phone: "919416873623", name: "Vaidya Sandhya Verma" },
+{ phone: "919558700816", name: "Vaidya Sanjana Mukeshbhai Patel" },
+{ phone: "918273562778", name: "Vaidya Sanjita" },
+{ phone: "917003317847", name: "Vaidya Sanju Rahaman" },
+{ phone: "919811107772", name: "Vaidya Satish Dev Jain" },
+{ phone: "919664740387", name: "Vaidya Shah Twinkal" },
+{ phone: "918102170514", name: "Vaidya Shalini Kumari" },
+{ phone: "917276357436", name: "Vaidya Santosh Dawle" },
+{ phone: "918975079949", name: "Vaidya Shivam Suryakant Bhadre" },
+{ phone: "918191848727", name: "Vaidya Shivani Negi" },
+{ phone: "918817907412", name: "Vaidya Shristi Gupta" },
+{ phone: "919637815201", name: "Vaidya Shekhar" },
+{ phone: "919023066996", name: "Vaidya Shilpa" },
+{ phone: "918669253591", name: "Vaidya Shivani Bhore" },
+{ phone: "919120355690", name: "Vaidya Shivani Yadav" },
+{ phone: "919368199950", name: "Vaidya Shreyansh Upadhayay" },
+{ phone: "918660785886", name: "Vaidya Shrinidhi" },
+{ phone: "919340675915", name: "Vaidya Shruti Bansal" },
+{ phone: "919356628927", name: "Vaidya Shubham Ulhamale" },
+{ phone: "919325500673", name: "Vaidya Siddesh Thakare" },
+{ phone: "918980957399", name: "Vaidya Siddhi Mayavanshi" },
+{ phone: "919890765265", name: "Vaidya Snehal Kantilal Jain" },
+{ phone: "919418241797", name: "Vaidya Sonia Katoch" },
+{ phone: "919743951746", name: "Vaidya Soumya Shirasangi" },
+{ phone: "917846834734", name: "Vaidya Subhashree Bhuyan" },
+{ phone: "919814293939", name: "Vaidya Sudha Bhalla" },
+{ phone: "918107671020", name: "Vaidya Sumegha" },
+{ phone: "919406115747", name: "Vaidya Shivani Sai" },
+{ phone: "919916806527", name: "Vaidya Sushmita Ninganure" },
+{ phone: "917978478886", name: "Vaidya Sunanda Sethi" },
+{ phone: "919112960323", name: "Vaidya Suraj Katkar" },
+{ phone: "917455849224", name: "Vaidya Suruchi" },
+{ phone: "919359205978", name: "Vaidya Suvarna Joshi" },
+{ phone: "918788543657", name: "Vaidya Switi Katre" },
+{ phone: "919368303501", name: "Vaidya Tanvi Chaurasiya" },
+{ phone: "919149017707", name: "Vaidya Tayyab Raja" },
+{ phone: "919265773735", name: "Vaidya Teraiya Krishna" },
+{ phone: "917041889873", name: "Vaidya Tushar Patel" },
+{ phone: "918168391009", name: "Vaidya Ujjval" },
+{ phone: "918319111815", name: "Vaidya Upasana Rawte" },
+{ phone: "916355939155", name: "Vaidya Utsav Italiya" },
+{ phone: "917746942531", name: "Vaidya Vaidya Bhupendra Marapi" },
+{ phone: "919999237042", name: "Vaidya Vaidya D.S. Sharma" },
+{ phone: "917004887364", name: "Vaidya Vaidya Harsh Raj" },
+{ phone: "919252085363", name: "Vaidya Vaidya Jyoti Verma" },
+{ phone: "919913035603", name: "Vaidya Vaidya Nita Chaudhary" },
+{ phone: "918463811837", name: "Vaidya Vaidya Shruti Ghoswal" },
+{ phone: "918823062378", name: "Vaidya Vaidya Vijeyata Verma" },
+{ phone: "918817038849", name: "Vaidya Vd Deepika Kunwar" },
+{ phone: "918265871200", name: "Vaidya Vaidya. Tanvi Rohela" },
+{ phone: "919111871227", name: "Vaidya Vandana Sidar" },
+{ phone: "918880381262", name: "Vaidya Varsha .B.Molekar" },
+{ phone: "919665998123", name: "Vaidya Varsha Dhage" },
+{ phone: "919149050959", name: "Vaidya Vasvi Singh" },
+{ phone: "919879784858", name: "Vaidya Aditya Gadhavi" },
+{ phone: "917310806661", name: "Vaidya Akshay" },
+{ phone: "919586814807", name: "Vaidya Anita Chaudhary" },
+{ phone: "919896874334", name: "Vaidya Brhamrita" },
+{ phone: "919898267291", name: "Vaidya Devangi P. Patel" },
+{ phone: "919145448990", name: "Vaidya Hemant" },
+{ phone: "918264402741", name: "Vaidya Hetal Satani" },
+{ phone: "917383523687", name: "Vaidya Hitesh Sangani" },
+{ phone: "919426033253", name: "Vaidya Jignasa Sakaria" },
+{ phone: "918878372993", name: "Vaidya Kapil Chandrawanshi" },
+{ phone: "919265163370", name: "Vaidya Prakruti Patel" },
+{ phone: "919898474547", name: "Vaidya Prince Patel" },
+{ phone: "918799384641", name: "Vaidya Sakshi Trivedi" },
+{ phone: "918412848786", name: "Vaidya Sanam Ayubkhan Mulla" },
+{ phone: "919403581120", name: "Vaidya Vd Sonali Deshmukh" },
+{ phone: "919783963574", name: "Vaidya Tripti Singh" },
+{ phone: "919427218783", name: "Vaidya Abha Devmurari" },
+{ phone: "918454936414", name: "Vaidya Abhishek Trivedi" },
+{ phone: "916260990605", name: "Vaidya Chetna Sahu" },
+{ phone: "917773877593", name: "Vaidya Deepak Rathor" },
+{ phone: "917226835707", name: "Vaidya Dhara Vansjaliya" },
+{ phone: "919712660948", name: "Vaidya Himani Labana" },
+{ phone: "918160348579", name: "Vaidya Jinal J Gajjar" },
+{ phone: "919729446229", name: "Vaidya Meenal Singal" },
+{ phone: "918847432339", name: "Vaidya Muskan Dungriyal" },
+{ phone: "919328592524", name: "Vaidya Priyansi Goswami" },
+{ phone: "919850645166", name: "Vaidya Sachin Shankarrao Kathole" },
+{ phone: "919665982204", name: "Vaidya Seema N Kuthe" },
+{ phone: "919537786078", name: "Vaidya Spandan Joshi" },
+{ phone: "919690755907", name: "Vaidya Ashish Kumar" },
+{ phone: "918160312254", name: "Vaidya Dhrupal Patel" },
+{ phone: "917359199615", name: "Vaidya Dhruvi Prajapati" },
+{ phone: "919328120684", name: "Vaidya Gaurang Chauhan" },
+{ phone: "916394470306", name: "Vaidya Vikesh Jaiswal" },
+{ phone: "918223995968", name: "Vaidya Gunjan Singh" },
+{ phone: "918602200105", name: "Vaidya Manish Sinha" },
+{ phone: "919925531805", name: "Vaidya Nidhi Pandya" },
+{ phone: "919426837800", name: "Vaidya Nihar Dodiya" },
+{ phone: "917689969838", name: "Vaidya Ramesh Kumar Regar" },
+{ phone: "919316233303", name: "Vaidya Srushti Patel" },
+{ phone: "917353591734", name: "Vaidya Vidyashree V P" },
+{ phone: "918088930049", name: "Vaidya Vennela M" },
+{ phone: "919996221101", name: "Vaidya Venus Nagi" },
+{ phone: "919016597387", name: "Vaidya Vidhi Kakaiya" },
+{ phone: "919226940099", name: "Vaidya Vikas Gade" },
+{ phone: "918200875603", name: "Vaidya Vikas Patel" },
+{ phone: "917379768429", name: "Vaidya Vipul Shanker Verma" },
+{ phone: "916351304425", name: "Vaidya Vishal Chaudhari" },
+{ phone: "919574463227", name: "Vaidya Vraj Valand" },
+{ phone: "919960731198", name: "Vaidya Yeshashree Thakre" },
+{ phone: "919915256937", name: "Vaidya Yogesh Kumar" },
+{ phone: "918507142222", name: "Vaidya Vishal Dhavle" },
+{ phone: "919545465694", name: "Vaidya Yogita Tembhurne" },
+{ phone: "918077784810", name: "Vaidya Anita Saini" }
+        ];
+
+        const canvas = document.getElementById('certCanvas');
+        const ctx = canvas.getContext('2d');
+        const template = new Image();
+        
+        // --- IMPORTANT: CORS FIX ---
+        template.crossOrigin = "anonymous"; 
+        template.src = 'template.jpg'; 
+
+        function startVerification() {
+            const inputVal = document.getElementById('phoneInput').value.trim();
+            const user = studentData.find(s => s.phone === inputVal);
+
+            document.getElementById('searchBox').classList.add('hidden');
+            document.getElementById('loadingView').classList.remove('hidden');
+
+            setTimeout(() => {
+                document.getElementById('loadingView').classList.add('hidden');
+                document.getElementById('resultView').classList.remove('hidden');
+                
+                if (user) {
+                    document.getElementById('statusTag').innerHTML = `<span class="text-emerald-600 uppercase tracking-widest">✔ Verified: ${user.name}</span>`;
+                    render(user);
+                } else {
+                    document.getElementById('statusTag').innerHTML = `<span class="text-red-500 uppercase tracking-widest">✘ Record Not Found</span>`;
+                    canvas.style.display = "none";
+                }
+            }, 2000);
+        }
+
+        function render(user) {
+            const certID = `VV-2026-${user.phone.slice(-3)}`;
+            const date = "27 Mar 2026";
+
+            // QR Content
+            const qrBox = document.getElementById("qr_hidden");
+            qrBox.innerHTML = "";
+            new QRCode(qrBox, {
+                text: `VERIFIED CERTIFICATE\nName: ${user.name}\nID: ${certID}\nDate: ${date}`,
+                width: 250, height: 250, correctLevel : QRCode.CorrectLevel.H
+            });
+
+            setTimeout(() => {
+                const qrImg = qrBox.querySelector('img');
+                canvas.width = template.width;
+                canvas.height = template.height;
+
+                // 1. Draw Template
+                ctx.drawImage(template, 0, 0);
+
+                // 2. Draw Name
+                ctx.font = "bold 115px 'Playfair Display', serif";
+                ctx.fillStyle = "#721c24"; 
+                ctx.textAlign = "center";
+                ctx.fillText(user.name.toUpperCase(), canvas.width / 2, 1625);
+
+                // 3. Draw QR & Details
+                const qrSize = 240;
+                const gap = 80;
+                ctx.fillStyle = "white";
+                ctx.fillRect(canvas.width - qrSize - gap - 15, canvas.height - qrSize - gap - 15, qrSize + 30, qrSize + 30);
+                ctx.drawImage(qrImg, canvas.width - qrSize - gap, canvas.height - qrSize - gap, qrSize, qrSize);
+
+                ctx.font = "bold 20px Arial";
+                ctx.fillStyle = "#2d3436";
+                ctx.textAlign = "right";
+                ctx.fillText(`ID: ${certID}`, canvas.width - gap, canvas.height - gap + 30);
+                ctx.fillText(`Issued: ${date}`, canvas.width - gap, canvas.height - gap + 55);
+            }, 200);
+        }
+
+        function downloadPNG() {
+            try {
+                const link = document.createElement('a');
+                link.download = `VaidyaCert_${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+            } catch(e) { alert("Download failed. If testing locally, please use a local server like 'Live Server' in VS Code."); }
+        }
+
+        async function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`VaidyaCert_${Date.now()}.pdf`);
+        }
+
+        function shareWhatsApp() {
+            const text = encodeURIComponent("Check out my official certificate from Vaidya Vidyapeeth! Verified & Issued.");
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+    </script>
+</body>
+</html>
