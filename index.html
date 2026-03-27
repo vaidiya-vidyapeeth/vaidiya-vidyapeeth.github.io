@@ -8,75 +8,74 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@300;400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Montserrat:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
         
-        body { background: #f0f2f5; font-family: 'Montserrat', sans-serif; }
+        body { background: #f8fafc; font-family: 'Montserrat', sans-serif; }
         .brand-header { font-family: 'Cinzel', serif; }
         .serif-italic { font-family: 'Playfair Display', serif; font-style: italic; }
 
-        .glass-panel {
-            background: rgba(255, 255, 255, 0.98);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        /* --- RESPONSIVE PREVIEW OVERLAY --- */
+        .cert-container { position: relative; width: 100%; max-width: 850px; margin: 0 auto; line-height: 0; }
+        
+        .cert-name-overlay {
+            position: absolute;
+            top: 56.5%; /* LOWERED from 53% */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            text-align: center;
+            color: #921919;
+            font-family: 'Playfair Display', serif;
+            font-weight: bold;
+            font-size: 2vw; /* 20% SMALLER than previous 2.5vw */
+        }
+        
+        .qr-overlay {
+            position: absolute;
+            bottom: 5%; 
+            right: 4%;
+            width: 8%;  
+            background: white;
+            padding: 1px;
         }
 
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #921919;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        #qr_hidden { display: none; }
+        #certCanvas, #qr_hidden { display: none; }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-4xl w-full glass-panel rounded-[2rem] p-6 md:p-10 text-center border-t-8 border-[#921919]">
+    <div class="max-w-4xl w-full bg-white rounded-[2.5rem] p-6 md:p-10 text-center shadow-2xl border-t-8 border-[#921919]">
         
-        <header class="mb-6">
-            <div class="w-16 h-16 bg-[#921919] rounded-full mx-auto mb-3 flex items-center justify-center shadow-md">
-                <span class="text-white font-bold text-lg brand-header"><img src="./logo.png"></span>
-            </div>
-            <h1 class="text-2xl brand-header text-[#921919]">VAIDYA VIDYAPEETH</h1>
-            <p class="text-md serif-italic text-gray-600">Certificate of फलश्रुति की पाठशाला</p>
+        <header class="mb-8">
+            <h1 class="text-2xl md:text-3xl brand-header text-[#921919]">VAIDYA VIDYAPEETH</h1>
+            <p class="text-sm md:text-md serif-italic text-gray-500">Certificate of फलश्रुति की पाठशाला</p>
         </header>
 
         <div id="searchBox" class="space-y-4 max-w-sm mx-auto">
-            <input type="text" id="phoneInput" 
-                class="w-full px-4 py-3 border-2 border-gray-100 rounded-xl text-lg text-center focus:border-[#921919] outline-none transition-all font-bold"
-                placeholder="Enter Phone Number" maxlength="15">
-            <button onclick="startVerification()" 
-                class="w-full bg-[#921919] text-white py-3 rounded-xl text-lg font-bold hover:bg-[#7a1414] transition-all shadow-lg active:scale-95">
-                Generate Certificate
-            </button>
+            <input type="text" id="phoneInput" class="w-full px-5 py-4 border-2 border-gray-100 rounded-2xl text-center font-bold text-xl focus:border-[#921919] outline-none transition-all" placeholder="Enter Phone Number">
+            <button onclick="verify()" class="w-full bg-[#921919] text-white py-4 rounded-2xl font-bold text-lg hover:bg-[#7a1414] shadow-lg active:scale-95 transition-all">Generate Certificate</button>
         </div>
 
-        <div id="loadingView" class="hidden py-12">
-            <div class="loader mx-auto mb-4"></div>
-            <p class="text-[#921919] font-bold animate-pulse">VERIFYING...</p>
-        </div>
+        <div id="resultView" class="hidden animate-in fade-in zoom-in duration-500">
+            <div class="cert-container shadow-2xl rounded-2xl overflow-hidden mb-8 border border-gray-100">
+                <img src="template.jpg" alt="Template" class="w-full">
+                <div id="previewName" class="cert-name-overlay">STUDENT NAME</div>
+                <div id="previewQR" class="qr-overlay"></div>
+            </div>
 
-        <div id="resultView" class="hidden">
-            <div id="statusTag" class="mb-4 font-bold text-emerald-600">Verification Successful</div>
-            <canvas id="certCanvas" class="w-full rounded-lg shadow-2xl mb-6 border border-gray-200"></canvas>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <button onclick="downloadPNG()" class="bg-[#1f2937] text-white py-3 rounded-lg font-bold hover:bg-black transition-all">PNG Image</button>
-                <button onclick="downloadPDF()" class="bg-[#1f2937] text-white py-3 rounded-lg font-bold hover:bg-black transition-all">PDF File</button>
-                <button onclick="shareWhatsApp()" class="bg-[#25D366] text-white py-3 rounded-lg font-bold hover:bg-[#128C7E] transition-all">WhatsApp</button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="downloadPNG()" class="bg-gray-800 hover:bg-black text-white py-4 rounded-xl font-bold shadow transition-all">Download PNG</button>
+                <button onclick="downloadPDF()" class="bg-gray-800 hover:bg-black text-white py-4 rounded-xl font-bold shadow transition-all">Download PDF</button>
+                <button onclick="shareWhatsApp()" class="bg-[#25D366] hover:bg-[#128C7E] text-white py-4 rounded-xl font-bold shadow transition-all">Share on WhatsApp</button>
             </div>
             
-            <button onclick="location.reload()" class="mt-6 text-gray-400 hover:text-[#921919] text-xs uppercase font-bold tracking-widest border-b pb-1">
-                New Verification
+            <button onclick="window.location.reload()" class="mt-10 text-gray-400 hover:text-[#921919] font-bold underline text-sm transition-all">
+                ← Verify Another Number
             </button>
         </div>
     </div>
 
+    <canvas id="certCanvas"></canvas>
     <div id="qr_hidden"></div>
 
     <script>
@@ -753,113 +752,89 @@
 { phone: "918077784810", name: "Vaidya Anita Saini" }
 
         ];
-    const canvas = document.getElementById('certCanvas');
-    const ctx = canvas.getContext('2d');
-    const template = new Image();
-    
-    // Crucial for GitHub Pages / External Hosting
-    template.crossOrigin = "anonymous"; 
-    template.src = 'template.jpg'; 
 
-    function startVerification() {
-        const inputVal = document.getElementById('phoneInput').value.trim();
-        const user = studentData.find(s => s.phone === inputVal);
+        let currentUser = null;
+        const canvas = document.getElementById('certCanvas');
+        const template = new Image();
+        template.crossOrigin = "anonymous";
+        template.src = 'template.jpg';
 
-        if (!user) {
-            alert("Number not found!");
-            return;
+        function verify() {
+            const val = document.getElementById('phoneInput').value.trim();
+            currentUser = studentData.find(s => s.phone === val);
+
+            if (!currentUser) return alert("Phone number not found.");
+
+            document.getElementById('searchBox').classList.add('hidden');
+            document.getElementById('resultView').classList.remove('hidden');
+            document.getElementById('previewName').innerText = currentUser.name.toUpperCase();
+
+            const prevQR = document.getElementById('previewQR');
+            prevQR.innerHTML = "";
+            new QRCode(prevQR, { text: `Verified: ${currentUser.name}`, width: 100, height: 100 });
         }
 
-        document.getElementById('searchBox').classList.add('hidden');
-        document.getElementById('loadingView').classList.remove('hidden');
+        async function processCanvas() {
+            const ctx = canvas.getContext('2d');
+            canvas.width = template.width;
+            canvas.height = template.height;
 
-        // Ensure template is loaded before rendering
-        if (template.complete) {
-            render(user);
-        } else {
-            template.onload = () => render(user);
+            const certID = `VV-2026-${currentUser.phone.slice(-3)}`;
+            const date = "27 Mar 2026";
+
+            const qr_hidden = document.getElementById('qr_hidden');
+            qr_hidden.innerHTML = "";
+            new QRCode(qr_hidden, { text: `Name: ${currentUser.name}\nID: ${certID}\nDate: ${date}`, width: 250, height: 250 });
+
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const qrImg = qr_hidden.querySelector('img');
+                    ctx.drawImage(template, 0, 0);
+
+                    // --- NAME ADJUSTMENTS ---
+                    // Font 44px (20% smaller than 55px)
+                    // Height 585 (Lowered from 550)
+                    ctx.font = "bold 44px 'Playfair Display', serif"; 
+                    ctx.fillStyle = "#921919";
+                    ctx.textAlign = "center";
+                    ctx.fillText(currentUser.name.toUpperCase(), canvas.width / 2, 525);
+
+                    // --- QR & METADATA ---
+                    const qrSize = 80;
+                    ctx.fillStyle = "white";
+                    ctx.fillRect(canvas.width-125, canvas.height-165, 90, 90);
+                    ctx.drawImage(qrImg, canvas.width-120, canvas.height-160, qrSize, qrSize);
+                    
+                    ctx.font = "bold 16px Arial";
+                    ctx.fillStyle = "#333";
+                    ctx.textAlign = "center";
+                    ctx.fillText(`ID: ${certID}`, canvas.width-80, canvas.height-55);
+                    ctx.fillText(`Date: ${date}`, canvas.width-80, canvas.height-39);
+                    resolve();
+                }, 150);
+            });
         }
-    }
 
-    function render(user) {
-        const certID = `VV-2026-${user.phone.slice(-3)}`;
-        const date = "27 Mar 2026";
+        async function downloadPNG() {
+            await processCanvas();
+            const link = document.createElement('a');
+            link.download = `VaidyaCert_${currentUser.name}.png`;
+            link.href = canvas.toDataURL('image/png', 1.0);
+            link.click();
+        }
 
-        const qrBox = document.getElementById("qr_hidden");
-        qrBox.innerHTML = "";
-        
-        // Generate QR
-        const qrcode = new QRCode(qrBox, {
-            text: `Name: ${user.name}\nID: ${certID}\nDate: ${date}`,
-            width: 150,
-            height: 150,
-            correctLevel : QRCode.CorrectLevel.H
-        });
+        async function downloadPDF() {
+            await processCanvas();
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
+            pdf.save(`VaidyaCert_${currentUser.name}.pdf`);
+        }
 
-        // MOBILE FIX: Wait specifically for the QR <img> tag to appear and load
-        const checkQR = setInterval(() => {
-            const qrImg = qrBox.querySelector('img');
-            if (qrImg && qrImg.complete && qrImg.naturalWidth !== 0) {
-                clearInterval(checkQR); // QR is ready!
-                drawFinalCertificate(user, qrImg, certID, date);
-            }
-        }, 100);
-    }
-
-    function drawFinalCertificate(user, qrImg, certID, date) {
-        document.getElementById('loadingView').classList.add('hidden');
-        document.getElementById('resultView').classList.remove('hidden');
-
-        canvas.width = template.width;
-        canvas.height = template.height;
-
-        // 1. Draw Template
-        ctx.drawImage(template, 0, 0);
-
-        // 2. Student Name
-        ctx.font = "bold 85px 'Playfair Display', serif"; 
-        ctx.fillStyle = "#921919"; 
-        ctx.textAlign = "center";
-        ctx.fillText(user.name.toUpperCase(), canvas.width / 2, 590); 
-
-        // 3. QR Code (Smaller & Slightly Raised)
-        const qrSize = 100; 
-        const rightMargin = 40; 
-        const bottomMargin = 160; 
-        
-        ctx.fillStyle = "white";
-        ctx.fillRect(canvas.width - qrSize - rightMargin - 5, canvas.height - qrSize - bottomMargin - 5, qrSize + 10, qrSize + 10);
-        ctx.drawImage(qrImg, canvas.width - qrSize - rightMargin, canvas.height - qrSize - bottomMargin, qrSize, qrSize);
-
-        // 4. ID & Date
-        ctx.font = "bold 16px Arial";
-        ctx.fillStyle = "#333";
-        ctx.textAlign = "center";
-        const qrCenterX = canvas.width - rightMargin - (qrSize/2);
-        ctx.fillText(`ID: ${certID}`, qrCenterX, canvas.height - bottomMargin + 18);
-        ctx.fillText(`Date: ${date}`, qrCenterX, canvas.height - bottomMargin + 34);
-
-        canvas.style.display = "block";
-    }
-
-    function downloadPNG() {
-        const link = document.createElement('a');
-        link.download = `Vaidya_Cert_${Date.now()}.png`;
-        link.href = canvas.toDataURL('image/png', 1.0);
-        link.click();
-    }
-
-    async function downloadPDF() {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [canvas.width, canvas.height] });
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`Vaidya_Cert_${Date.now()}.pdf`);
-    }
-
-    function shareWhatsApp() {
-        const text = encodeURIComponent("Check out my certificate from Vaidya Vidyapeeth! 🎓");
-        window.open(`https://wa.me/?text=${text}`, '_blank');
-    }
-</script>
+        function shareWhatsApp() {
+            const text = encodeURIComponent("I just verified my official certificate from Vaidya Vidyapeeth! 🎓");
+            window.open(`https://wa.me/?text=${text}`, '_blank');
+        }
+    </script>
 </body>
 </html>
