@@ -11,17 +11,13 @@
 
   <script>
     tailwind.config = {
-      content: [],
       theme: {
         extend: {
-          colors: {
-            maroon: '#921919',
-            gold: '#c5a059',
-          },
+          colors: { maroon: '#921919', gold: '#c5a059' },
           fontFamily: {
             cinzel: ['Cinzel', 'serif'],
             montserrat: ['Montserrat', 'sans-serif'],
-            playfair: ['Playfair Display', 'serif'],
+            playfair: ['Playfair Display', 'serif']
           }
         }
       }
@@ -29,142 +25,70 @@
   </script>
 
   <style>
-    body {
-      font-family: 'Montserrat', sans-serif;
-      background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    }
+    body { font-family: 'Montserrat', sans-serif; }
+    .heading-font { font-family: 'Cinzel', serif; }
     
-    .heading-font {
-      font-family: 'Cinzel', serif;
-    }
-
-    .glass {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(16px);
-    }
-
     canvas {
-      box-shadow: 0 35px 60px -15px rgb(146 25 25 / 0.35);
-      border: 16px solid #921919;
-      border-radius: 12px;
+      box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.45);
+      border: 14px solid #921919;
       max-width: 100%;
       height: auto;
-      transition: transform 0.3s ease;
-    }
-
-    canvas:hover {
-      transform: scale(1.02);
-    }
-
-    .input-focus {
-      transition: all 0.3s ease;
-    }
-    
-    .input-focus:focus {
-      box-shadow: 0 0 0 4px rgba(197, 160, 89, 0.3);
     }
   </style>
 </head>
-<body class="min-h-screen py-8 md:py-12">
-  <div class="max-w-5xl mx-auto px-4 md:px-6">
-    
-    <!-- Elegant Header -->
-    <div class="text-center mb-12">
-      <div class="inline-flex items-center justify-center gap-4 bg-white shadow-md border border-[#c5a059]/40 rounded-3xl px-10 py-5">
-        <div class="w-6 h-6 bg-[#921919] rounded-full flex items-center justify-center text-white text-xs font-bold">ॐ</div>
-        <h1 class="heading-font text-4xl md:text-5xl tracking-[3px] text-[#921919]">Vaidya Vidyapeeth • Certificate of Completion</h1>
+<body class="bg-[#f3f4f6] min-h-screen py-12">
+  <div class="max-w-[1100px] mx-auto px-6">
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-3 bg-white px-8 py-4 rounded-2xl shadow-sm border border-[#c5a059]/30">
+        <div class="w-5 h-5 bg-[#921919] rounded-full"></div>
+        <h1 class="heading-font text-4xl tracking-widest text-[#921919]">PHALSHRUTI KI PATHSHALA</h1>
       </div>
-      <p class="mt-4 text-[#c5a059] text-lg md:text-xl font-medium">फलश्रुति की पाठशाला</p>
+      <p class="mt-3 text-[#c5a059] text-lg">Certificate Verification System</p>
     </div>
 
-    <!-- Main Content -->
-    <div class="grid md:grid-cols-2 gap-10 items-start">
-
-      <!-- Left: Input Card -->
-      <div id="input-section" class="glass rounded-3xl shadow-2xl p-8 md:p-10 border border-[#c5a059]/20">
-        <div class="text-center mb-10">
-          <div class="mx-auto w-20 h-20 bg-gradient-to-br from-[#921919] to-[#c5a059] rounded-2xl flex items-center justify-center text-4xl mb-6 shadow-inner">
-            📜
-          </div>
-          <h2 class="heading-font text-3xl text-[#921919] mb-2">Verify Your Certificate</h2>
-          <p class="text-gray-600 max-w-xs mx-auto">Enter your registered phone number to generate authentic certificate</p>
-        </div>
-
-        <div class="space-y-8">
-          <div>
-            <label class="block text-sm font-semibold text-gray-700 mb-3 tracking-wider">PHONE NUMBER[Without +91/+977]</label>
-            <input 
-              id="phone-input" 
-              type="tel" 
-              placeholder="9876543210"
-              maxlength="12"
-              class="input-focus w-full px-6 py-5 text-lg border-2 border-gray-200 focus:border-[#c5a059] rounded-2xl focus:outline-none bg-white">
-          </div>
-
-          <button 
-            onclick="verifyStudent()"
-            id="verify-btn"
-            class="w-full bg-[#921919] hover:bg-[#7a1414] transition-all duration-300 text-white font-semibold py-5 rounded-2xl text-lg shadow-lg shadow-[#921919]/30 flex items-center justify-center gap-3">
-            <span id="btn-text">Verify & Generate Certificate</span>
-          </button>
-        </div>
-
-        <div id="status" class="mt-8 text-center text-sm hidden"></div>
-      </div>
-
-      <!-- Right: Instructions / Decorative -->
-      <div class="hidden md:flex flex-col justify-center text-gray-600">
-        <div class="bg-white/70 backdrop-blur rounded-3xl p-8 border border-[#c5a059]/30">
-          <h3 class="font-semibold text-[#921919] mb-4">How it works:</h3>
-          <ul class="space-y-4 text-sm">
-            <li class="flex gap-3 items-start">
-              <span class="text-[#c5a059] mt-1">→</span>
-              Enter your 10-digit phone number
-            </li>
-            <li class="flex gap-3 items-start">
-              <span class="text-[#c5a059] mt-1">→</span>
-              System verifies your enrollment
-            </li>
-            <li class="flex gap-3 items-start">
-              <span class="text-[#c5a059] mt-1">→</span>
-              High-fidelity certificate with QR code is generated
-            </li>
-            <li class="flex gap-3 items-start">
-              <span class="text-[#c5a059] mt-1">→</span>
-              Download Certificate Instantly
-            </li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Certificate Preview Section -->
-    <div id="certificate-section" class="hidden mt-16">
+    <!-- Input Section -->
+    <div id="input-section" class="max-w-md mx-auto bg-white rounded-3xl shadow-2xl p-10">
       <div class="text-center mb-8">
-        <h2 class="heading-font text-3xl text-[#921919]">Your Certificate is Ready</h2>
-        <p class="text-gray-500">Preview • Authenticated with QR Code</p>
+        <h2 class="heading-font text-3xl text-[#921919] mb-2">Verify Certificate</h2>
+        <p class="text-gray-600">Enter your registered phone number</p>
       </div>
       
-      <div class="flex justify-center">
-        <canvas id="certificate-canvas" width="1100" height="800" class="rounded-2xl"></canvas>
-      </div>
+      <input id="phone-input" type="tel" placeholder="9876543210" maxlength="10"
+             class="w-full px-6 py-5 border-2 border-gray-200 focus:border-[#c5a059] rounded-2xl text-lg focus:outline-none transition-all">
+      
+      <button onclick="verifyStudent()" id="verify-btn"
+              class="w-full mt-6 bg-[#921919] hover:bg-[#7a1414] text-white font-semibold py-5 rounded-2xl text-lg transition-all">
+        <span id="btn-text">Verify & Generate Certificate</span>
+      </button>
+      
+      <div id="status" class="mt-6 text-center text-sm hidden"></div>
+    </div>
 
-      <div class="flex flex-wrap gap-4 justify-center mt-10">
-        <button onclick="downloadCertificate()" 
-                class="px-10 py-4 bg-gradient-to-r from-[#c5a059] to-[#d4af7a] hover:from-amber-500 hover:to-amber-600 text-[#921919] font-semibold rounded-2xl transition-all flex items-center gap-3 shadow-md">
-          📥 Download Certificate
-        </button>
+    <!-- Certificate Section -->
+    <div id="certificate-section" class="hidden mt-16">
+      <div class="flex flex-col items-center">
+        <canvas id="certificate-canvas" width="1100" height="800"></canvas>
         
-        <button onclick="resetForm()" 
-                class="px-10 py-4 border-2 border-[#921919] hover:bg-[#921919] hover:text-white text-[#921919] font-semibold rounded-2xl transition-all">
-          ← Verify Another Student
-        </button>
+        <div class="flex gap-6 mt-10">
+          <button onclick="downloadCertificate()" 
+                  class="px-12 py-4 bg-[#c5a059] hover:bg-amber-600 text-[#921919] font-semibold rounded-2xl transition-all">
+            📥 Download Certificate (PNG)
+          </button>
+          <button onclick="resetForm()" 
+                  class="px-12 py-4 border-2 border-[#921919] hover:bg-[#921919] hover:text-white text-[#921919] font-semibold rounded-2xl transition-all">
+            Verify Another
+          </button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
     const studentData = [
+      { phone: "9876543210", name: "Dr. Priya Sharma" },
+      { phone: "8765432109", name: "Dr. Arjun Patel" },
+      { phone: "7654321098", name: "Dr. Meera Nair" },
+      { phone: "6543210987", name: "Dr. Rohan Gupta" }, 
       { phone: "8957159735", name: "Vaidya Rameshwar singh" },
 { phone: "7093262677", name: "Vaidya Ajay Krishna . S" },
 { phone: "7877765623", name: "Vaidya Akshaj Rathor" },
@@ -835,7 +759,6 @@
 { phone: "8507142222", name: "Vaidya Vishal Dhavle" },
 { phone: "9545465694", name: "Vaidya Yogita Tembhurne" },
 { phone: "8077784810", name: "Vaidya Anita Saini" }
-
     ];
 
     let currentStudent = null;
@@ -846,52 +769,116 @@
       const status = document.getElementById('status');
 
       if (!/^\d{10}$/.test(phone)) {
-        showStatus("Please enter a valid 10-digit phone number", "red");
+        status.classList.remove('hidden');
+        status.innerHTML = `<span class="text-red-600">Please enter a valid 10-digit phone number</span>`;
         return;
       }
 
       btn.disabled = true;
-      document.getElementById('btn-text').innerHTML = `
-        <svg class="animate-spin h-5 w-5 mr-3 inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg> Verifying with Pathshala Records...
-      `;
+      document.getElementById('btn-text').innerHTML = `Verifying...`;
 
-      await new Promise(r => setTimeout(r, 1450));
+      await new Promise(r => setTimeout(r, 1400));
 
       const student = studentData.find(s => s.phone === phone);
-
       if (student) {
         currentStudent = student;
         document.getElementById('input-section').classList.add('hidden');
         document.getElementById('certificate-section').classList.remove('hidden');
         generateCertificate(student);
       } else {
-        showStatus("No record found for this phone number. Please check and try again.", "red");
-        resetButton();
+        status.classList.remove('hidden');
+        status.innerHTML = `<span class="text-red-600">No record found.</span>`;
+        btn.disabled = false;
+        document.getElementById('btn-text').textContent = "Verify & Generate Certificate";
       }
     }
 
-    function showStatus(msg, color) {
-      const status = document.getElementById('status');
-      status.classList.remove('hidden');
-      status.innerHTML = `<span class="text-${color}-600 font-medium">${msg}</span>`;
+    async function generateCertificate(student) {
+  const canvas = document.getElementById('certificate-canvas');
+  const ctx = canvas.getContext('2d');
+
+  // ====================== EASY TO EDIT SECTION ======================
+  const nameFontSize = 26;
+  const nameY = 465;
+
+  const qrSize = 100;
+  const qrX = 1150 - 175;     
+  const qrY = 900 - 255;      
+  // =================================================================
+
+  const template = new Image();
+  template.crossOrigin = "anonymous";
+  template.src = "template.jpg";
+
+  template.onload = async () => {
+    ctx.drawImage(template, 0, 0, 1100, 800);
+
+    // Student Name
+    ctx.save();
+    ctx.font = `700 italic ${nameFontSize}px 'Playfair Display'`;
+    ctx.fillStyle = "#921919";
+    ctx.textAlign = "center";
+    ctx.shadowColor = "rgba(146, 25, 25, 0.3)";
+    ctx.shadowBlur = 10;
+    ctx.fillText(student.name.toUpperCase(), 550, nameY);
+    ctx.restore();
+
+    // === Certificate ID with last 5 digits + moved to LEFT side ===
+    const lastFiveDigits = student.phone.slice(-5);
+    const certId = `VV-2026-${lastFiveDigits}`;
+
+    ctx.save();
+    ctx.font = "600 18px 'Montserrat'";
+    ctx.fillStyle = "#4a2c0b";
+    ctx.textAlign = "left";                    // Changed to left align
+    
+    // Moved to left side (opposite to QR)
+    ctx.fillText(`Certificate ID: ${certId}`, 22, 645);   // X=120 (left side)
+    ctx.fillText(`Issued on: 27 March 2026`, 22, 670);    // Same X position
+    ctx.restore();
+
+    // QR Code (remains on right side)
+    const qrContainer = document.createElement('div');
+    qrContainer.style.position = 'absolute';
+    qrContainer.style.left = '-9999px';
+    document.body.appendChild(qrContainer);
+
+    const qrData = JSON.stringify({
+      name: student.name,
+      certificateId: certId,
+      course: "Phalshruti Ki Pathshala",
+      issued: "27 March 2026"
+    });
+
+    new QRCode(qrContainer, {
+      text: qrData,
+      width: qrSize,
+      height: qrSize,
+      colorDark: "#921919",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.H
+    });
+
+    await new Promise(r => setTimeout(r, 420));
+
+    const qrCanvas = qrContainer.querySelector('canvas');
+    if (qrCanvas) {
+      ctx.drawImage(qrCanvas, qrX, qrY, qrSize, qrSize);
     }
 
-    function resetButton() {
-      const btn = document.getElementById('verify-btn');
-      btn.disabled = false;
-      document.getElementById('btn-text').textContent = "Verify & Generate Certificate";
-    }
-768332
+    document.body.removeChild(qrContainer);
+  };
 
+  template.onerror = () => {
+    alert("template.jpg not found! Please place it in the same folder as index.html");
+  };
+    }
     function downloadCertificate() {
       if (!currentStudent) return;
       const canvas = document.getElementById('certificate-canvas');
       const link = document.createElement('a');
-      link.download = `${currentStudent.name.replace(/[^a-zA-Z0-9]/g, '_')}_Phalshruti_Certificate.png`;
-      link.href = canvas.toDataURL('image/png', 1.0);
+      link.download = `${currentStudent.name.replace(/[^a-zA-Z0-9]/g, '_')}_Certificate.png`;
+      link.href = canvas.toDataURL('image/png');
       link.click();
     }
 
@@ -899,11 +886,11 @@
       document.getElementById('certificate-section').classList.add('hidden');
       document.getElementById('input-section').classList.remove('hidden');
       document.getElementById('phone-input').value = '';
-      resetButton();
+      document.getElementById('verify-btn').disabled = false;
+      document.getElementById('btn-text').textContent = "Verify & Generate Certificate";
     }
 
-    // Enter key support
-    document.getElementById('phone-input').addEventListener('keypress', (e) => {
+    document.getElementById('phone-input').addEventListener('keypress', e => {
       if (e.key === 'Enter') verifyStudent();
     });
   </script>
